@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # --- Defaults ---
-    target_brands: list[str] = ["Zara", "ASOS", "SSENSE"]
+    target_brands: list[str] = ["Zara", "ASOS", "SSENSE", "H&M", "Uniqlo", "Urban Outfitters", "Aritzia"]
     max_search_results: int = 20
 
     @property

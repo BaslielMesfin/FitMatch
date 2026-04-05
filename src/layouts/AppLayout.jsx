@@ -1,19 +1,32 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, useLocation, Link, Navigate, NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
 import Avatar from '../components/atoms/Avatar/Avatar'
-import { HomeIcon, SearchIcon, ChatIcon, GridIcon, UserIcon } from '../components/icons/Icons'
-import { MOCK_USER } from '../data/mockData'
+import { HomeIcon, SearchIcon, SparkleIcon, UserIcon, GridIcon } from '../components/icons/Icons'
 import './AppLayout.css'
 
 const NAV_ITEMS = [
-  { to: '/', icon: <HomeIcon />, label: 'Home' },
-  { to: '/search', icon: <SearchIcon />, label: 'Search' },
-  { to: '/chat', icon: <ChatIcon />, label: 'Stylist' },
-  { to: '/boards', icon: <GridIcon />, label: 'Boards' },
-  { to: '/profile', icon: <UserIcon />, label: 'Profile' },
+  { path: '/', icon: <HomeIcon />, label: 'Home' },
+  { path: '/search', icon: <SearchIcon />, label: 'Search' },
+  { path: '/chat', icon: <SparkleIcon />, label: 'Stylist' },
+  { path: '/boards', icon: <GridIcon />, label: 'Boards' },
+  { path: '/profile', icon: <UserIcon />, label: 'Profile' },
 ]
 
 export default function AppLayout() {
+  const location = useLocation()
+  const { user, loading } = useAuth()
+
+  if (loading) return null // loading spinner could go here
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  // Use username or standard Mock Name if no onboarding profile is fetched yet
+  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || "User"
+
   return (
     <div className="app-layout">
       {/* Top Navigation */}
@@ -25,8 +38,8 @@ export default function AppLayout() {
           <nav className="top-nav__links">
             {NAV_ITEMS.slice(0, 3).map((item) => (
               <NavLink
-                key={item.to}
-                to={item.to}
+                key={item.path}
+                to={item.path}
                 className={({ isActive }) =>
                   `top-nav__link ${isActive ? 'top-nav__link--active' : ''}`
                 }
@@ -38,7 +51,7 @@ export default function AppLayout() {
           </nav>
           <div className="top-nav__right">
             <NavLink to="/profile">
-              <Avatar name={MOCK_USER.display_name} size="sm" />
+              <Avatar name={displayName} size="sm" />
             </NavLink>
           </div>
         </div>
@@ -53,21 +66,25 @@ export default function AppLayout() {
       <nav className="bottom-nav">
         {NAV_ITEMS.map((item) => (
           <NavLink
-            key={item.to}
-            to={item.to}
+            key={item.path}
+            to={item.path}
             className={({ isActive }) =>
               `bottom-nav__item ${isActive ? 'bottom-nav__item--active' : ''}`
             }
-            end={item.to === '/'}
+            end={item.path === '/'}
           >
-            <motion.div
-              className="bottom-nav__icon"
-              whileTap={{ scale: 0.8 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            >
-              {item.icon}
-            </motion.div>
-            <span className="bottom-nav__label">{item.label}</span>
+            {({ isActive }) => (
+              <motion.div
+                className="bottom-nav__icon"
+                whileTap={{ scale: 0.8 }}
+                animate={{
+                  y: isActive ? -4 : 0,
+                  color: isActive ? 'var(--color-primary-600)' : 'var(--color-text-tertiary)'
+                }}
+              >
+                {item.icon}
+              </motion.div>
+            )}
           </NavLink>
         ))}
       </nav>

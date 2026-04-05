@@ -4,12 +4,16 @@ import Avatar from '../components/atoms/Avatar/Avatar'
 import Button from '../components/atoms/Button/Button'
 import Badge from '../components/atoms/Badge/Badge'
 import Skeleton from '../components/atoms/Skeleton/Skeleton'
-import { MOCK_USER } from '../data/mockData'
 import { discoveryApi } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 import './ProfilePage.css'
 
 export default function ProfilePage() {
-  const { display_name, username, stats } = MOCK_USER
+  const { user, signOut } = useAuth()
+  const display_name = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User'
+  const username = `@${display_name.toLowerCase().replace(' ', '')}`
+  const stats = { followers: 1240, following: 180 }
+  
   const [tasteProfile, setTasteProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -145,20 +149,28 @@ export default function ProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        <h2 className="profile-page__section-title">Settings</h2>
+        <h2 className="profile-page__section-title">Settings & Info</h2>
         <div className="profile-page__settings">
           <div className="profile-page__setting-item">
-            <span>Notifications</span>
-            <span className="profile-page__setting-value">On</span>
+            <span>Age / Gender</span>
+            <span className="profile-page__setting-value">
+              {user?.user_metadata?.age || '?'} / {user?.user_metadata?.gender || 'Not specified'}
+            </span>
+          </div>
+          <div className="profile-page__setting-item">
+            <span>Fit Preference</span>
+            <span className="profile-page__setting-value">{user?.user_metadata?.fit_preference || 'Not specified'}</span>
           </div>
           <div className="profile-page__setting-item">
             <span>Preferred Brands</span>
-            <span className="profile-page__setting-value">{preferredBrands}</span>
+            <span className="profile-page__setting-value">
+              {user?.user_metadata?.preferred_brands?.join(', ') || 'Global Defaults'}
+            </span>
           </div>
-          <div className="profile-page__setting-item">
-            <span>Budget Range</span>
-            <span className="profile-page__setting-value">$30 — $200</span>
-          </div>
+        </div>
+
+        <div style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
+          <Button variant="secondary" onClick={signOut}>Log Out</Button>
         </div>
       </motion.div>
     </div>
