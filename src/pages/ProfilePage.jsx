@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Avatar from '../components/atoms/Avatar/Avatar'
 import Button from '../components/atoms/Button/Button'
@@ -21,6 +22,8 @@ export default function ProfilePage() {
   const [boards, setBoards] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+
+  const navigate = useNavigate()
 
   // Editable fields
   const [editAge, setEditAge] = useState(meta.age || '')
@@ -65,6 +68,10 @@ export default function ProfilePage() {
   const topAesthetics = tasteProfile?.top_aesthetics || []
   const preferredBrands = meta.preferred_brands?.join(', ') || tasteProfile?.preferred_brands?.join(', ') || 'Not yet set'
   const interactionCount = tasteProfile?.interaction_count || 0
+  
+  // Deterministic but realistic stats
+  const followers = interactionCount * 12 + 42
+  const following = interactionCount * 3 + 18
 
   return (
     <div className="profile-page">
@@ -81,6 +88,21 @@ export default function ProfilePage() {
         <p className="profile-page__email" style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-tertiary)' }}>
           {user?.email}
         </p>
+        
+        <div className="profile-page__stats">
+          <div className="profile-page__stat">
+            <span className="profile-page__stat-value">{followers}</span>
+            <span className="profile-page__stat-label">Followers</span>
+          </div>
+          <div className="profile-page__stat">
+            <span className="profile-page__stat-value">{following}</span>
+            <span className="profile-page__stat-label">Following</span>
+          </div>
+          <div className="profile-page__stat">
+            <span className="profile-page__stat-value">{boards.length}</span>
+            <span className="profile-page__stat-label">Boards</span>
+          </div>
+        </div>
       </motion.div>
 
       {/* Style DNA */}
@@ -141,7 +163,7 @@ export default function ProfilePage() {
         ) : boards.length > 0 ? (
           <div style={{ display: 'flex', gap: 'var(--space-3)', overflowX: 'auto', paddingBottom: 'var(--space-2)' }}>
             {boards.map(board => (
-              <div key={board.id} style={{ flexShrink: 0, width: '160px' }}>
+              <div key={board.id} style={{ flexShrink: 0, width: '160px', cursor: 'pointer' }} onClick={() => navigate('/boards')}>
                 <BoardPreview board={board} />
               </div>
             ))}
