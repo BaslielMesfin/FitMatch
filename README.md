@@ -1,16 +1,71 @@
-# React + Vite
+# FitMatch ✨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+FitMatch is a premium, AI-powered fashion discovery PWA (Progressive Web App). It learns your "Style DNA" and curates a Pinterest-style feed of clothing items, utilizing the Gemini 2.0 API for multimodal aesthetic translation and the Serper Shopping API to pull live product data from top brands (like Zara, ASOS, and SSENSE).
 
-Currently, two official plugins are available:
+## Features 🚀
+- **AI Stylist Chat**: Talk to an AI or upload photos to get tailored outfit recommendations and matching products.
+- **Smart Discovery Feed**: Dynamic Pinterest-style masonry grid showing trending clothes tailored to your taste profile.
+- **Style DNA Learning**: As you like items, the local algorithm learns your preferences (e.g., "Old Money", "Streetwear") and adapts your feed using exponential moving averages.
+- **Boards (Coming soon)**: Curate your favorite fashion finds into customized digital mood boards.
+- **PWA Ready**: Mobile-first design, installable on your home screen, with smooth app-like navigation and Framer Motion micro-animations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Technology Stack 🛠️
 
-## React Compiler
+**Frontend:**
+- React 19 + Vite 8
+- Vanilla CSS (Custom Design Tokens, Glassmorphism, CSS Variables)
+- Framer Motion (Animations)
+- React Router v7
+- Vite PWA Plugin
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Backend:**
+- Python 3.10+ & FastAPI
+- Google GenAI SDK (Gemini 2.0 Flash)
+- Serper.dev API (Google Shopping Search)
+- Pydantic Settings
+- Uvicorn
 
-## Expanding the ESLint configuration
+## How to Run Locally 💻
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Backend Setup
+1. Open the `server` directory.
+2. Initialize and activate a Python virtual environment:
+   ```bash
+   cd server
+   python -m venv venv
+   # Windows:
+   venv\Scripts\activate
+   # Mac/Linux:
+   source venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install fastapi uvicorn google-genai httpx pydantic-settings python-dotenv pillow PyJWT supabase
+   ```
+4. Set up Env Variables:
+   Create a `.env` file inside the `server/` directory:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key
+   SERPER_API_KEY=your_serper_api_key
+   ```
+5. Start the server:
+   ```bash
+   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+### 2. Frontend Setup
+1. In a new terminal, open the root directory.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite dev server:
+   ```bash
+   npm run dev
+   ```
+4. Open your browser to `http://localhost:5173`.
+
+## Architecture Note for Vercel Deployment 🌐
+FitMatch is designed with separation of concerns in mind (SOLID principles).
+- **Frontend**: Fully compatible to be deployed statically to **Vercel**.
+- **Backend (FastAPI)**: To deploy alongside Vercel, you can either wrap FastAPI using Vercel's Serverless Python runtimes, or deploy the backend separately to Render/Railway and update the `CORS_ORIGINS` in `.env`.
