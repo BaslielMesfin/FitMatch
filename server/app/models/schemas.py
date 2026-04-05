@@ -87,3 +87,12 @@ class LikeRequest(BaseModel):
     """Like or unlike an item."""
     item_id: str
     liked: bool = True
+    aesthetic_tags: list[str] = []
+    brand: str | None = None
+
+
+# ---- Board Item Add ----
+
+class BoardItemAddRequest(BaseModel):
+    """Add an item to a board."""
+    item: ItemResponse

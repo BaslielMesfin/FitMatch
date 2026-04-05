@@ -101,6 +101,53 @@ export const searchApi = {
   },
 }
 
+// ---- Boards API ----
+
+export const boardsApi = {
+  async getBoards() {
+    return request('/boards/')
+  },
+
+  async createBoard(name, description = '') {
+    return request('/boards/', {
+      method: 'POST',
+      body: JSON.stringify({ name, description }),
+    })
+  },
+
+  async getBoardItems(boardId) {
+    return request(`/boards/${boardId}/items`)
+  },
+
+  async addItemToBoard(boardId, item) {
+    return request(`/boards/${boardId}/items`, {
+      method: 'POST',
+      body: JSON.stringify({ item }),
+    })
+  },
+
+  async removeItemFromBoard(boardId, itemId) {
+    return request(`/boards/${boardId}/items/${itemId}`, {
+      method: 'DELETE',
+    })
+  },
+}
+
+// ---- Social API ----
+
+export const socialApi = {
+  async toggleFollow(targetUserId, follow = true) {
+    return request('/social/follow', {
+      method: 'POST',
+      body: JSON.stringify({ target_user_id: targetUserId, follow }),
+    })
+  },
+
+  async getTrending(limit = 5) {
+    return request(`/social/trending?limit=${limit}`)
+  },
+}
+
 // ---- Health ----
 
 export async function checkApiHealth() {

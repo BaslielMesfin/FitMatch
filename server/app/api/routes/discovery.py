@@ -51,12 +51,21 @@ async def like_item(
     """
     Like or unlike an item. Updates the user's taste profile.
     """
+    from app.services.social_service import get_social_service
     user_id = user.get("sub", "anonymous") if user else "anonymous"
 
+    item_dict = {
+        "id": request.item_id,
+        "aesthetic_tags": request.aesthetic_tags,
+        "brand": request.brand
+    }
+
     if request.liked:
-        taste_service.record_like(user_id, {"id": request.item_id})
+        taste_service.record_like(user_id, item_dict)
+        if request.aesthetic_tags:
+            get_social_service().record_global_interaction(request.aesthetic_tags)
     else:
-        taste_service.record_dislike(user_id, {"id": request.item_id})
+        taste_service.record_dislike(user_id, item_dict)
 
     return {"status": "ok", "liked": request.liked}
 

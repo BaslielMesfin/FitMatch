@@ -1,12 +1,51 @@
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Badge from '../../atoms/Badge/Badge'
 import Button from '../../atoms/Button/Button'
 import IconButton from '../../atoms/IconButton/IconButton'
 import { CloseIcon, HeartIcon, BookmarkIcon, ExternalLinkIcon } from '../../icons/Icons'
+import { boardsApi, discoveryApi } from '../../../services/api'
 import './ItemDetailModal.css'
 
 export default function ItemDetailModal({ item, isOpen, onClose }) {
+  const [boards, setBoards] = useState([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [showBoardsList, setShowBoardsList] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setShowBoardsList(false)
+      setSaveSuccess(false)
+      boardsApi.getBoards().then(setBoards).catch(console.error)
+    }
+  }, [isOpen])
+
   if (!item) return null
+
+  async function handleSaveToBoard(boardId) {
+    if (isSaving) return
+    setIsSaving(true)
+    try {
+      await boardsApi.addItemToBoard(boardId, item)
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 2000)
+    } catch (err) {
+      console.error('Failed to save to board', err)
+    } finally {
+      setIsSaving(false)
+      setShowBoardsList(false)
+    }
+  }
+
+  async function handleLike() {
+    try {
+      await discoveryApi.likeItem(item.id, true)
+      alert("Added to your Style DNA!")
+    } catch {
+      // silent
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -58,29 +97,47 @@ export default function ItemDetailModal({ item, isOpen, onClose }) {
                 </div>
 
                 <div className="item-detail-modal__actions">
-                  <Button variant="primary" size="lg" fullWidth icon={<ExternalLinkIcon />}>
-                    Shop at {item.store}
-                  </Button>
+                  <a href={item.product_url} target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', width: '100%'}}>
+                    <Button variant="primary" size="lg" fullWidth icon={<ExternalLinkIcon />}>
+                      Shop at {item.store}
+                    </Button>
+                  </a>
                   <div className="item-detail-modal__secondary-actions">
-                    <Button variant="secondary" icon={<HeartIcon />}>
+                    <Button variant="secondary" icon={<HeartIcon />} onClick={handleLike}>
                       Like
                     </Button>
-                    <Button variant="secondary" icon={<BookmarkIcon />}>
-                      Save
+                    <Button variant="secondary" icon={<BookmarkIcon />} onClick={() => setShowBoardsList(!showBoardsList)}>
+                      {saveSuccess ? 'Saved!' : 'Save'}
                     </Button>
                   </div>
                 </div>
 
-                <div className="item-detail-modal__ai-section">
-                  <div className="item-detail-modal__ai-header">
-                    <span className="gradient-text">✨ AI Stylist Match</span>
+                {showBoardsList ? (
+                   <div className="item-detail-modal__ai-section">
+                     <div className="item-detail-modal__ai-header">
+                       <span className="gradient-text">Select a Board</span>
+                     </div>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                       {boards.map(board => (
+                         <Button key={board.id} variant="secondary" size="sm" onClick={() => handleSaveToBoard(board.id)} disabled={isSaving}>
+                           {board.name}
+                         </Button>
+                       ))}
+                       {boards.length === 0 && <p className="text-secondary" style={{fontSize: '12px'}}>No boards yet. Go to Boards tab to create one!</p>}
+                     </div>
+                   </div>
+                ) : (
+                  <div className="item-detail-modal__ai-section">
+                    <div className="item-detail-modal__ai-header">
+                      <span className="gradient-text">✨ AI Stylist Match</span>
+                    </div>
+                    <p className="item-detail-modal__ai-text">
+                      This {item.category?.toLowerCase() || 'piece'} pairs perfectly with neutral tones
+                      and structured silhouettes. Try it with tailored pieces and
+                      minimalist accessories for a {item.aesthetic_tags?.[0] || 'classic'} look.
+                    </p>
                   </div>
-                  <p className="item-detail-modal__ai-text">
-                    This {item.category?.toLowerCase() || 'item'} pairs perfectly with neutral tones
-                    and structured silhouettes. Try it with tailored trousers and
-                    minimalist accessories for a {item.aesthetic_tags?.[0] || 'classic'} look.
-                  </p>
-                </div>
+                )}
               </div>
             </div>
           </motion.div>

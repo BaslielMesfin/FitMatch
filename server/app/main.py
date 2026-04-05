@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.api.routes import discovery, chat, search
+from app.api.routes import discovery, chat, search, boards, social
 
 # Configure logging
 logging.basicConfig(
@@ -45,6 +45,8 @@ def create_app() -> FastAPI:
     app.include_router(discovery.router, prefix="/api")
     app.include_router(chat.router, prefix="/api")
     app.include_router(search.router, prefix="/api")
+    app.include_router(boards.router, prefix="/api")
+    app.include_router(social.router, prefix="/api")
 
     # ---- Health Check ----
     @app.get("/api/health")
