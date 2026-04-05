@@ -1,0 +1,25 @@
+.home-page {
+  padding-top: var(--space-2);
+}
+
+.home-page__loading {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.home-page__loading .masonry-grid {
+  column-count: 2;
+  column-gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .home-page__loading .masonry-grid {
+    column-count: 3;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-page__loading .masonry-grid {
+    column-count: 4;
+  }
+}

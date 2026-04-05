@@ -1,0 +1,40 @@
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: all var(--duration-fast) var(--ease-out);
+  cursor: pointer;
+  border: none;
+  position: relative;
+}
+
+.icon-btn--sm { width: 32px; height: 32px; font-size: 16px; }
+.icon-btn--md { width: 40px; height: 40px; font-size: 20px; }
+.icon-btn--lg { width: 48px; height: 48px; font-size: 24px; }
+
+.icon-btn--default:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+}
+
+.icon-btn--glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-xs);
+}
+
+.icon-btn--glass:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.icon-btn--active {
+  color: var(--color-heart);
+}
+
+.icon-btn--active.icon-btn--glass {
+  color: var(--color-heart);
+}

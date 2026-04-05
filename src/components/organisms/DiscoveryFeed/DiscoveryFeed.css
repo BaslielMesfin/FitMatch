@@ -1,0 +1,29 @@
+.discovery-feed {
+  padding: 0 var(--space-4);
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.masonry-grid {
+  column-count: 2;
+  column-gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .masonry-grid {
+    column-count: 3;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry-grid {
+    column-count: 4;
+  }
+}
+
+@media (min-width: 1440px) {
+  .masonry-grid {
+    column-count: 5;
+  }
+}

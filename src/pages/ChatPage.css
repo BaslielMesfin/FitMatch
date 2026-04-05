@@ -1,0 +1,11 @@
+.chat-page {
+  height: calc(100dvh - var(--nav-height) - var(--bottom-nav-height));
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .chat-page {
+    height: calc(100dvh - var(--nav-height) - var(--space-8));
+  }
+}
