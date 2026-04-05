@@ -13,6 +13,7 @@ export default function Button({
 }) {
   return (
     <motion.button
+      type="button"
       className={`btn btn--${variant} btn--${size} ${fullWidth ? 'btn--full' : ''}`}
       disabled={disabled}
       onClick={onClick}

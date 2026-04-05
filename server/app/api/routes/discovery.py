@@ -12,6 +12,14 @@ from app.services.taste_service import TasteService, get_taste_service
 
 router = APIRouter(prefix="/discovery", tags=["Discovery"])
 
+ROTATION_QUERIES = [
+    "trending fashion clothing outfits",
+    "designer tops jackets bottoms",
+    "casual streetwear hoodies pants",
+    "luxury wardrobe essentials dresses",
+    "modern minimalist fashion clothing",
+]
+
 
 @router.get("/feed", response_model=DiscoveryResponse)
 async def get_discovery_feed(
@@ -24,9 +32,14 @@ async def get_discovery_feed(
 ):
     """
     Get the personalized discovery feed.
-    If a user is authenticated, results are weighted by their taste profile.
+    Uses query rotation for pagination to keep results fresh.
     """
-    query = aesthetic or "trending fashion clothing shoes"
+    if aesthetic:
+        query = f"{aesthetic} clothing outfits fashion"
+    else:
+        idx = (page - 1) % len(ROTATION_QUERIES)
+        query = ROTATION_QUERIES[idx]
+
     brands = [brand] if brand else None
 
     items = await search_service.search_products(

@@ -14,7 +14,7 @@ export default function AuthLayout() {
     <div className="auth-layout">
       <div className="auth-layout__container">
         <div className="auth-layout__logo">
-          ✨ FitMatch
+          FitMatch
         </div>
         <Outlet />
       </div>

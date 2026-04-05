@@ -58,7 +58,7 @@ Respond in JSON format ONLY (no markdown, no code blocks, no extra text):
 """
 
 CHAT_STYLIST_PROMPT = """You are FitMatch AI Stylist — a friendly, knowledgeable personal shopper.
-You help users discover clothing and shoes from Zara, ASOS, and SSENSE.
+You help users discover clothing and shoes from Zara, ASOS, SSENSE, H&M, Uniqlo, Urban Outfitters, and Aritzia.
 
 Rules:
 - Be concise but warm (2-3 sentences max per point)
@@ -66,7 +66,7 @@ Rules:
 - Reference the user's aesthetic preferences when possible
 - If they upload an image, analyze it and suggest complementary pieces
 - End with a question to keep the conversation going
-- Use emoji sparingly but naturally
+- Never use emojis. Keep language professional and clean
 
 User's taste profile: {taste_profile}
 User message: "{message}"
@@ -166,7 +166,7 @@ class AIService:
             logger.error(f"Chat response error: {e}")
             return (
                 "I'd love to help style you! Could you tell me more about "
-                "the occasion and your preferred aesthetic? 💜"
+                "the occasion and your preferred aesthetic?"
             )
 
     @staticmethod

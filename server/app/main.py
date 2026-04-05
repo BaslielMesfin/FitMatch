@@ -62,10 +62,10 @@ def create_app() -> FastAPI:
     # ---- Startup Event ----
     @app.on_event("startup")
     async def startup():
-        logger.info("🚀 FitMatch API starting up...")
+        logger.info("FitMatch API starting up...")
         logger.info(f"   CORS origins: {settings.cors_origin_list}")
-        logger.info(f"   Gemini API: {'✅ configured' if settings.gemini_api_key else '❌ not set'}")
-        logger.info(f"   Serper API: {'✅ configured' if settings.serper_api_key else '❌ not set'}")
+        logger.info(f"   Gemini API: {'configured' if settings.gemini_api_key else 'not set'}")
+        logger.info(f"   Serper API: {'configured' if settings.serper_api_key else 'not set'}")
         logger.info(f"   Target brands: {settings.target_brands}")
         logger.info("   Docs: http://localhost:8000/api/docs")
 

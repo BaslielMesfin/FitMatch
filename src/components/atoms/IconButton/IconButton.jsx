@@ -12,6 +12,7 @@ export default function IconButton({
 }) {
   return (
     <motion.button
+      type="button"
       className={`icon-btn icon-btn--${variant} icon-btn--${size} ${active ? 'icon-btn--active' : ''}`}
       onClick={onClick}
       aria-label={label}

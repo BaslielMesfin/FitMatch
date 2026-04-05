@@ -79,7 +79,7 @@ async def upload_image(
         f"I can see a **{analysis.get('color', '')} {analysis.get('item_type', 'item')}** "
         f"in {analysis.get('material', 'a nice fabric')}! "
         f"This has a strong **{analysis.get('aesthetic', 'classic')}** vibe.\n\n"
-        f"💡 **Styling tip:** {analysis.get('styling_tip', 'Try pairing with neutral tones!')}\n\n"
+        f"Styling tip: {analysis.get('styling_tip', 'Try pairing with neutral tones!')}\n\n"
         f"Here are some pieces that would complete the look:"
     )
 
