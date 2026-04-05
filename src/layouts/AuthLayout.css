@@ -89,6 +89,33 @@
   text-decoration: none;
 }
 
+.auth-form__password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-form__password-wrapper .auth-form__input {
+  padding-right: 44px;
+}
+
+.auth-form__eye-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  font-size: 18px;
+}
+
+.auth-form__eye-btn:hover {
+  color: var(--color-text-primary);
+}
+
 .auth-error {
   color: #ef4444;
   font-size: var(--text-sm);

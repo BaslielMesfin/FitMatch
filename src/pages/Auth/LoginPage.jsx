@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import Button from '../../components/atoms/Button/Button'
+import { EyeIcon, EyeOffIcon } from '../../components/icons/Icons'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const { signInWithEmail, signInWithGoogle } = useAuth()
+  const { signInWithEmail } = useAuth()
   const navigate = useNavigate()
 
   async function handleLogin(e) {
@@ -22,16 +24,6 @@ export default function LoginPage() {
       setLoading(false)
     } else {
       navigate('/')
-    }
-  }
-
-  async function handleGoogleLogin() {
-    setLoading(true)
-    setError(null)
-    const { error } = await signInWithGoogle()
-    if (error) {
-      setError(error.message)
-      setLoading(false)
     }
   }
 
@@ -49,24 +41,23 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <input
-          type="password"
-          className="auth-form__input"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="auth-form__password-wrapper">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            className="auth-form__input"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="button" className="auth-form__eye-btn" onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
+        </div>
         <Button variant="primary" size="lg" fullWidth disabled={loading}>
           {loading ? 'Logging in...' : 'Log In'}
         </Button>
       </form>
-
-      <div className="auth-divider">OR</div>
-
-      <Button variant="secondary" size="lg" fullWidth onClick={handleGoogleLogin} disabled={loading}>
-        Continue with Google
-      </Button>
 
       <div className="auth-link">
         Don't have an account? <Link to="/signup">Sign up</Link>

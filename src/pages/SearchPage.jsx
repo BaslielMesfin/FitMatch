@@ -105,7 +105,7 @@ export default function SearchPage() {
         />
       ) : (
         <div className="search-page__empty">
-          <p className="search-page__empty-icon">🔍</p>
+          <p className="search-page__empty-icon">No Results</p>
           <h3>No matches found</h3>
           <p>Try a different search or browse all items</p>
         </div>

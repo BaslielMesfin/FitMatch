@@ -34,7 +34,7 @@ export default function TrendingBar({ activeTag, onTagClick }) {
     <div className="trending-bar">
       <div className="trending-bar__scroll" ref={scrollRef}>
         <Badge
-          label="✨ For You"
+          label="For You"
           variant={!activeTag ? 'active' : 'default'}
           onClick={() => onTagClick?.(null)}
         />

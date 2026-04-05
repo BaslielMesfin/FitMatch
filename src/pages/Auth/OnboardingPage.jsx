@@ -69,7 +69,7 @@ export default function OnboardingPage() {
     <div className="onboarding-page">
       <div className="onboarding-container">
         <div className="onboarding-header">
-          <span className="gradient-text">Personalize your feed ✨</span>
+          <span className="gradient-text">Personalize your feed</span>
           <div className="onboarding-progress">
             Step {step} of 4
           </div>

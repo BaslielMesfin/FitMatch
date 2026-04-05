@@ -7,10 +7,10 @@ import { chatApi } from '../../../services/api'
 import './StylistChat.css'
 
 const STARTER_PROMPTS = [
-  { emoji: '👔', text: 'Old Money interview outfit' },
-  { emoji: '🏖️', text: 'Summer beach casual' },
-  { emoji: '💃', text: 'First date dinner look' },
-  { emoji: '🎒', text: 'Street style for winter' },
+  { text: 'Old Money interview outfit' },
+  { text: 'Summer beach casual' },
+  { text: 'First date dinner look' },
+  { text: 'Street style for winter' },
 ]
 
 export default function StylistChat() {
@@ -18,7 +18,7 @@ export default function StylistChat() {
     {
       id: '0',
       role: 'assistant',
-      text: "Hey! I'm your AI Stylist ✨ Tell me what vibe you're going for, or upload a photo of something you already own — I'll find pieces that match perfectly from Zara, ASOS, and SSENSE."
+      text: "Hey! I'm your AI Stylist. Tell me what vibe you're going for, or upload a photo of something you already own — I'll find pieces that match perfectly."
     }
   ])
   const [input, setInput] = useState('')
@@ -81,7 +81,7 @@ export default function StylistChat() {
     const userMsg = {
       id: Date.now().toString(),
       role: 'user',
-      text: `📷 Uploaded: ${file.name}`,
+      text: `Uploaded: ${file.name}`,
       isImage: true,
     }
     setMessages(prev => [...prev, userMsg])
@@ -104,7 +104,7 @@ export default function StylistChat() {
       const aiMsg = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: "I see the item you uploaded! When connected to the Gemini Vision API, I'll analyze the color, fabric, and style to find complementary items from our target stores. 👀✨",
+        text: "I see the item you uploaded! When connected to the Gemini Vision API, I'll analyze the color, fabric, and style to find complementary items from our target stores.",
       }
       setMessages(prev => [...prev, aiMsg])
     } finally {
@@ -139,7 +139,7 @@ export default function StylistChat() {
                 {msg.aestheticDetected && (
                   <div className="chat-message__aesthetic">
                     <span className="chat-message__aesthetic-tag">
-                      ✨ {msg.aestheticDetected}
+                      {msg.aestheticDetected}
                     </span>
                   </div>
                 )}
@@ -205,7 +205,6 @@ export default function StylistChat() {
               className="stylist-chat__starter-chip"
               onClick={() => handleSend(prompt.text)}
             >
-              <span>{prompt.emoji}</span>
               <span>{prompt.text}</span>
             </button>
           ))}
