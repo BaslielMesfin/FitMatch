@@ -2,36 +2,40 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: var(--z-overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .modal-backdrop {
+    align-items: center;
+    padding: var(--space-4);
+  }
 }
 
 .item-detail-modal {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  width: 100%;
   max-height: 92vh;
   background: var(--color-white);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   z-index: var(--z-modal);
   overflow-y: auto;
   overscroll-behavior: contain;
+  box-shadow: var(--shadow-modal);
 }
 
 @media (min-width: 768px) {
   .item-detail-modal {
-    top: 50%;
-    left: 50%;
-    bottom: auto;
-    right: auto;
-    transform: translate(-50%, -50%);
     max-width: 900px;
     width: 90%;
+    height: auto;
     max-height: 85vh;
     border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-modal);
   }
 }
 

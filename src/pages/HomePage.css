@@ -8,11 +8,18 @@
 }
 
 .home-page__loading .masonry-grid {
-  column-count: 2;
-  column-gap: var(--space-4);
+  column-count: 1;
+  column-gap: var(--space-3);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 480px) {
+  .home-page__loading .masonry-grid {
+    column-count: 2;
+    column-gap: var(--space-4);
+  }
+}
+
+@media (min-width: 768px) {
   .home-page__loading .masonry-grid {
     column-count: 3;
   }
@@ -21,5 +28,11 @@
 @media (min-width: 1024px) {
   .home-page__loading .masonry-grid {
     column-count: 4;
+  }
+}
+
+@media (min-width: 1440px) {
+  .home-page__loading .masonry-grid {
+    column-count: 5;
   }
 }
