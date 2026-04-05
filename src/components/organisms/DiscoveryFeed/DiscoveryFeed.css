@@ -6,11 +6,18 @@
 }
 
 .masonry-grid {
-  column-count: 2;
-  column-gap: var(--space-4);
+  column-count: 1;
+  column-gap: var(--space-3);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 480px) {
+  .masonry-grid {
+    column-count: 2;
+    column-gap: var(--space-4);
+  }
+}
+
+@media (min-width: 768px) {
   .masonry-grid {
     column-count: 3;
   }
