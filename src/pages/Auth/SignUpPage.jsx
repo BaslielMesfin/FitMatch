@@ -22,8 +22,12 @@ export default function SignUpPage() {
     if (error) {
       setError(error.message)
       setLoading(false)
+    } else if (data && data.session === null) {
+      // Supabase Email Confirmations are turned on
+      setError('Confirmation email sent! Please check your inbox and verify your email before logging in.')
+      setLoading(false)
     } else {
-      // If successful, push to onboarding. (Supabase auto logins after signup usually)
+      // If successful, push to onboarding.
       navigate('/onboarding')
     }
   }
