@@ -5,7 +5,7 @@ import Skeleton from '../components/atoms/Skeleton/Skeleton'
 import DiscoveryFeed from '../components/organisms/DiscoveryFeed/DiscoveryFeed'
 import ItemDetailModal from '../components/organisms/ItemDetailModal/ItemDetailModal'
 import { MOCK_ITEMS, BRANDS } from '../data/mockData'
-import { searchApi } from '../services/api'
+import { searchApi, discoveryApi } from '../services/api'
 import './SearchPage.css'
 
 export default function SearchPage() {
@@ -61,6 +61,14 @@ export default function SearchPage() {
     }
   }, [activeBrand])
 
+  const handleLike = useCallback(async (itemId, liked) => {
+    try {
+      await discoveryApi.likeItem(itemId, liked)
+    } catch {
+      // Silent
+    }
+  }, [])
+
   const displayItems = searchResults !== null ? searchResults : localFiltered
 
   return (
@@ -102,6 +110,8 @@ export default function SearchPage() {
         <DiscoveryFeed
           items={displayItems}
           onItemClick={setSelectedItem}
+          onLike={handleLike}
+          onSave={(itemId) => setSelectedItem(displayItems.find(i => i.id === itemId))}
         />
       ) : (
         <div className="search-page__empty">

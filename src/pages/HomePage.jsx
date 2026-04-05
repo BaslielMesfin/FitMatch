@@ -124,6 +124,7 @@ export default function HomePage() {
             items={items}
             onItemClick={setSelectedItem}
             onLike={handleLike}
+            onSave={(itemId) => setSelectedItem(items.find(i => i.id === itemId))}
           />
           {/* Sentinel for infinite scroll */}
           {hasMore && (

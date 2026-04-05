@@ -103,16 +103,28 @@ export const searchApi = {
 
 // ---- Boards API ----
 
+function mapBoard(b) {
+  return {
+    id: b.id,
+    name: b.name,
+    description: b.description,
+    itemCount: b.item_count ?? 0,
+    coverImages: b.cover_images ?? [],
+  }
+}
+
 export const boardsApi = {
   async getBoards() {
-    return request('/boards/')
+    const boards = await request('/boards/')
+    return boards.map(mapBoard)
   },
 
   async createBoard(name, description = '') {
-    return request('/boards/', {
+    const board = await request('/boards/', {
       method: 'POST',
       body: JSON.stringify({ name, description }),
     })
+    return mapBoard(board)
   },
 
   async getBoardItems(boardId) {

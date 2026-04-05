@@ -48,22 +48,25 @@ class SerperSearchProvider(BaseSearchProvider):
     ) -> list[ItemResponse]:
         """
         Search Serper.dev Shopping API for products.
-        If brands are specified, appends brand names to the query.
+        If specific brands are requested, searches per-brand.
+        Otherwise does a single broad search for variety.
         """
         if not self._settings.serper_api_key:
             logger.warning("Serper API key not set — returning mock results")
             return self._get_fallback_results(query)
 
-        results = []
-
-        # If specific brands requested, search each brand separately
-        search_brands = brands or self._settings.target_brands
-        for brand in search_brands:
-            brand_query = f"{query} {brand}"
-            items = await self._search_single(brand_query, brand, max_results // len(search_brands))
-            results.extend(items)
-
-        return results[:max_results]
+        if brands:
+            # User explicitly wants specific brands — search per-brand
+            results = []
+            for brand in brands:
+                brand_query = f"{query} {brand}"
+                items = await self._search_single(brand_query, brand, max_results // len(brands))
+                results.extend(items)
+            return results[:max_results]
+        else:
+            # Broad search — single query, let Google Shopping return diverse brands
+            items = await self._search_single(query, "", max_results)
+            return items[:max_results]
 
     async def _search_single(
         self, query: str, brand: str, max_results: int
@@ -114,15 +117,16 @@ class SerperSearchProvider(BaseSearchProvider):
                 if image_url.startswith("data:"):
                     image_url = ""
 
+                item_brand = brand if brand else result.get("source", "Unknown")
                 item = ItemResponse(
-                    id=f"serper-{brand.lower()}-{i}-{hash(result.get('title', '')) % 10000}",
+                    id=f"serper-{item_brand.lower().replace(' ', '')}-{i}-{hash(result.get('title', '')) % 10000}",
                     title=result.get("title", "Unknown Item"),
-                    brand=brand,
+                    brand=item_brand,
                     price=price,
                     currency="USD",
                     image_url=image_url,
                     product_url=result.get("link", "#"),
-                    store=result.get("source", brand),
+                    store=result.get("source", item_brand),
                     aesthetic_tags=[],
                     color=None,
                     category=None,
