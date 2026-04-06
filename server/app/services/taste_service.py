@@ -1,20 +1,15 @@
 """
 FitMatch — Taste Service
+Persistent taste profiles using Supabase.
 Manages user taste profiles based on likes and interactions.
-
-This is the "Intelligence Engine" — it learns from every like, save,
-and chat interaction to build a user's aesthetic DNA.
 """
 
 import logging
-from collections import defaultdict
+from typing import List, Tuple
+from app.core.supabase import get_supabase
 
 logger = logging.getLogger(__name__)
 
-# In-memory taste profiles (will move to Supabase in production)
-_taste_profiles: dict[str, dict] = {}
-
-# Aesthetic weight decay — more recent interactions matter more
 AESTHETIC_CATEGORIES = [
     "Old Money", "Streetwear", "Minimalist", "Y2K", "Dark Academia",
     "Coastal Grandmother", "Quiet Luxury", "Gorpcore", "Coquette",
@@ -23,87 +18,116 @@ AESTHETIC_CATEGORIES = [
 
 
 class TasteService:
-    """Manages and evolves user taste profiles."""
+    """Manages and evolves user taste profiles in Supabase."""
 
-    def get_profile(self, user_id: str) -> dict:
-        """Get the current taste profile for a user."""
-        if user_id not in _taste_profiles:
-            _taste_profiles[user_id] = {
+    def __init__(self):
+        self.supabase = get_supabase()
+
+    async def get_profile(self, user_id: str) -> dict:
+        """Get the current taste profile for a user from Supabase."""
+        res = self.supabase.table("taste_profiles") \
+            .select("*") \
+            .eq("user_id", user_id) \
+            .execute()
+        
+        if not res.data:
+            # Create a default profile if it doesn't exist
+            default_profile = {
+                "user_id": user_id,
                 "aesthetics": {tag: 0.0 for tag in AESTHETIC_CATEGORIES},
                 "preferred_brands": [],
                 "liked_items": [],
-                "interaction_count": 0,
+                "interaction_count": 0
             }
-        return _taste_profiles[user_id]
-
-    def record_like(self, user_id: str, item: dict) -> dict:
-        """
-        Record a like and update the taste profile.
-        Each like slightly increases the weight of the item's aesthetic tags.
-        """
-        profile = self.get_profile(user_id)
+            try:
+                # Use upsert to avoid race conditions
+                ins_res = self.supabase.table("taste_profiles").upsert(default_profile).execute()
+                return ins_res.data[0]
+            except Exception as e:
+                logger.error(f"Error creating taste profile for {user_id}: {e}")
+                return default_profile
         
-        # Increase aesthetic weights for liked item's tags
-        for tag in item.get("aesthetic_tags", []):
-            if tag in profile["aesthetics"]:
-                current = profile["aesthetics"][tag]
-                # Exponential moving average: new = old * 0.9 + 0.1
-                profile["aesthetics"][tag] = min(1.0, current * 0.9 + 0.1)
+        return res.data[0]
 
-        # Track brand preference
+    async def record_like(self, user_id: str, item: dict) -> dict:
+        """Record a like and update the persistent taste profile."""
+        profile = await self.get_profile(user_id)
+        
+        # 1. Update aesthetic weights
+        aesthetics = profile.get("aesthetics", {})
+        for tag in item.get("aesthetic_tags", []):
+            if tag in aesthetics:
+                current = float(aesthetics[tag])
+                aesthetics[tag] = min(1.0, current * 0.9 + 0.1)
+
+        # 2. Update brands
         brand = item.get("brand")
-        if brand and brand not in profile["preferred_brands"]:
-            profile["preferred_brands"].append(brand)
+        preferred_brands = list(profile.get("preferred_brands", []))
+        if brand and brand not in preferred_brands:
+            preferred_brands.append(brand)
 
-        # Track liked item
-        profile["liked_items"].append(item.get("id", ""))
-        profile["interaction_count"] += 1
+        # 3. Update liked items and count
+        liked_items = list(profile.get("liked_items", []))
+        liked_items.append(item.get("id", ""))
+        
+        updated_profile = {
+            "user_id": user_id,
+            "aesthetics": aesthetics,
+            "preferred_brands": preferred_brands,
+            "liked_items": liked_items,
+            "interaction_count": profile.get("interaction_count", 0) + 1
+        }
 
-        logger.info(f"User {user_id} taste updated. Interactions: {profile['interaction_count']}")
-        return profile
+        self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+        return updated_profile
 
-    def record_dislike(self, user_id: str, item: dict) -> dict:
-        """
-        Record a dislike — slightly decrease aesthetic weights.
-        """
-        profile = self.get_profile(user_id)
-
+    async def record_dislike(self, user_id: str, item: dict) -> dict:
+        """Record a dislike — slightly decrease aesthetic weights."""
+        profile = await self.get_profile(user_id)
+        
+        aesthetics = profile.get("aesthetics", {})
         for tag in item.get("aesthetic_tags", []):
-            if tag in profile["aesthetics"]:
-                current = profile["aesthetics"][tag]
-                profile["aesthetics"][tag] = max(0.0, current * 0.95 - 0.02)
+            if tag in aesthetics:
+                current = float(aesthetics[tag])
+                aesthetics[tag] = max(0.0, current * 0.95 - 0.02)
 
-        profile["interaction_count"] += 1
-        return profile
+        updated_profile = {
+            "user_id": user_id,
+            "aesthetics": aesthetics,
+            "interaction_count": profile.get("interaction_count", 0) + 1
+        }
 
-    def get_top_aesthetics(self, user_id: str, top_n: int = 4) -> list[tuple[str, float]]:
+        self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+        return updated_profile
+
+    async def get_top_aesthetics(self, user_id: str, top_n: int = 4) -> list[tuple[str, float]]:
         """Get the user's top N aesthetic preferences."""
-        profile = self.get_profile(user_id)
+        profile = await self.get_profile(user_id)
+        aesthetics = profile.get("aesthetics", {})
+        
         sorted_aesthetics = sorted(
-            profile["aesthetics"].items(),
+            aesthetics.items(),
             key=lambda x: x[1],
             reverse=True,
         )
         return sorted_aesthetics[:top_n]
 
-    def get_discovery_weights(self, user_id: str) -> dict[str, float]:
-        """
-        Get weights for the discovery feed algorithm.
-        Higher-weighted aesthetics appear more frequently.
-        """
-        profile = self.get_profile(user_id)
-        total = sum(profile["aesthetics"].values()) or 1.0
+    async def get_discovery_weights(self, user_id: str) -> dict[str, float]:
+        """Get weights for the discovery feed algorithm."""
+        profile = await self.get_profile(user_id)
+        aesthetics = profile.get("aesthetics", {})
+        
+        total = sum(float(v) for v in aesthetics.values()) or 1.0
         return {
-            tag: weight / total
-            for tag, weight in profile["aesthetics"].items()
-            if weight > 0
+            tag: float(weight) / total
+            for tag, weight in aesthetics.items()
+            if float(weight) > 0
         }
 
 
 # ---- Singleton ----
 
 _taste_service: TasteService | None = None
-
 
 def get_taste_service() -> TasteService:
     global _taste_service

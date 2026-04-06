@@ -1,26 +1,22 @@
 """
 FitMatch — Social Service
-In-memory social features: Follows, Trending Metrics.
+Persistent social features using Supabase: Follows, Trending Metrics.
 """
 
 from collections import Counter
-from typing import Dict, List, Tuple
+from typing import List, Tuple
+from app.core.supabase import get_supabase
 
 class SocialService:
     """
-    In-memory tracking of social features.
-    For trending, we track global aesthetic popularity when users interact.
+    Persistent tracking of social features.
     """
 
     def __init__(self):
-        # user_id -> set of followed user_ids
-        self._follows: Dict[str, set] = {}
-        
-        # global tag tracking for trending
-        self._global_tags_counter = Counter()
-        
-        # Add some initial trending data so it's not empty
-        self._global_tags_counter.update({
+        self.supabase = get_supabase()
+        # In-memory counter for trending aesthetics to avoid too many DB hits
+        # We can periodically flush this or just use it as a real-time buffer
+        self._global_tags_counter = Counter({
             "Streetwear": 120,
             "Old Money": 95,
             "Minimalist": 80,
@@ -28,28 +24,52 @@ class SocialService:
             "Athleisure": 30
         })
 
-    def follow_user(self, user_id: str, target_user_id: str) -> bool:
-        if user_id not in self._follows:
-            self._follows[user_id] = set()
-        self._follows[user_id].add(target_user_id)
-        return True
-
-    def unfollow_user(self, user_id: str, target_user_id: str) -> bool:
-        if user_id in self._follows and target_user_id in self._follows[user_id]:
-            self._follows[user_id].remove(target_user_id)
+    async def follow_user(self, user_id: str, target_user_id: str) -> bool:
+        """Create a follow relationship in Supabase."""
+        try:
+            self.supabase.table("follows").upsert({
+                "follower_id": user_id,
+                "following_id": target_user_id
+            }).execute()
             return True
-        return False
+        except Exception:
+            return False
 
-    def get_following_count(self, user_id: str) -> int:
-        return len(self._follows.get(user_id, set()))
+    async def unfollow_user(self, user_id: str, target_user_id: str) -> bool:
+        """Delete a follow relationship in Supabase."""
+        try:
+            self.supabase.table("follows") \
+                .delete() \
+                .eq("follower_id", user_id) \
+                .eq("following_id", target_user_id) \
+                .execute()
+            return True
+        except Exception:
+            return False
 
-    def get_followers_count(self, user_id: str) -> int:
-        return sum(1 for follows in self._follows.values() if user_id in follows)
+    async def get_following_count(self, user_id: str) -> int:
+        """Count users that this user follows."""
+        res = self.supabase.table("follows") \
+            .select("following_id", count="exact") \
+            .eq("follower_id", user_id) \
+            .execute()
+        return res.count if res.count is not None else 0
 
-    def record_global_interaction(self, tags: List[str]):
+    async def get_followers_count(self, user_id: str) -> int:
+        """Count users that follow this user."""
+        res = self.supabase.table("follows") \
+            .select("follower_id", count="exact") \
+            .eq("following_id", user_id) \
+            .execute()
+        return res.count if res.count is not None else 0
+
+    async def record_global_interaction(self, tags: List[str]):
         """Called when a user likes/saves an item to boost its aesthetic."""
         for tag in tags:
             self._global_tags_counter[tag] += 1
+        
+        # In a real app, we might also log this to a 'trends' table in Supabase
+        # to track trends over time.
 
     def get_trending_aesthetics(self, limit: int = 5) -> List[Tuple[str, int]]:
         """Return the top globally tending aesthetics."""

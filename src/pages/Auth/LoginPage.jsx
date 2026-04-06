@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import Button from '../../components/atoms/Button/Button'
-import { EyeIcon, EyeOffIcon } from '../../components/icons/Icons'
+import { EyeIcon, EyeOffIcon, GoogleIcon } from '../../components/icons/Icons'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const { signInWithEmail } = useAuth()
+  const { signInWithEmail, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
 
   async function handleLogin(e) {
@@ -54,10 +54,16 @@ export default function LoginPage() {
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
-        <Button variant="primary" size="lg" fullWidth disabled={loading}>
+        <Button variant="primary" size="lg" fullWidth disabled={loading} type="submit">
           {loading ? 'Logging in...' : 'Log In'}
         </Button>
       </form>
+
+      <div className="auth-divider">or</div>
+
+      <Button variant="secondary" size="lg" fullWidth onClick={signInWithGoogle} icon={<GoogleIcon />}>
+        Continue with Google
+      </Button>
 
       <div className="auth-link">
         Don't have an account? <Link to="/signup">Sign up</Link>
