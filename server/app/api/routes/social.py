@@ -32,9 +32,9 @@ async def toggle_follow(
         )
         
     if request.follow:
-        social_service.follow_user(user_id, request.target_user_id)
+        await social_service.follow_user(user_id, request.target_user_id)
     else:
-        social_service.unfollow_user(user_id, request.target_user_id)
+        await social_service.unfollow_user(user_id, request.target_user_id)
         
     return {"status": "ok", "following": request.follow}
 

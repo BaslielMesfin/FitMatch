@@ -74,11 +74,11 @@ async def like_item(
     }
 
     if request.liked:
-        taste_service.record_like(user_id, item_dict)
+        await taste_service.record_like(user_id, item_dict)
         if request.aesthetic_tags:
-            get_social_service().record_global_interaction(request.aesthetic_tags)
+            await get_social_service().record_global_interaction(request.aesthetic_tags)
     else:
-        taste_service.record_dislike(user_id, item_dict)
+        await taste_service.record_dislike(user_id, item_dict)
 
     return {"status": "ok", "liked": request.liked}
 
@@ -90,8 +90,8 @@ async def get_user_taste(
 ):
     """Get the current user's taste profile."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    profile = taste_service.get_profile(user_id)
-    top = taste_service.get_top_aesthetics(user_id)
+    profile = await taste_service.get_profile(user_id)
+    top = await taste_service.get_top_aesthetics(user_id)
 
     return {
         "top_aesthetics": [{"name": name, "score": round(score, 2)} for name, score in top],

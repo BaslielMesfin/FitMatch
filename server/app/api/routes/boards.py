@@ -19,7 +19,7 @@ async def list_boards(
 ):
     """List all boards for the current user."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    return boards_service.get_user_boards(user_id)
+    return await boards_service.get_user_boards(user_id)
 
 
 @router.post("/", response_model=BoardResponse)
@@ -30,7 +30,7 @@ async def create_board(
 ):
     """Create a new board."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    return boards_service.create_board(user_id, request)
+    return await boards_service.create_board(user_id, request)
 
 
 @router.get("/{board_id}/items", response_model=List[ItemResponse])
@@ -41,7 +41,7 @@ async def get_board_items(
 ):
     """List all items saved in a specific board."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    return boards_service.get_board_items(user_id, board_id)
+    return await boards_service.get_board_items(user_id, board_id)
 
 
 @router.post("/{board_id}/items")
@@ -53,7 +53,7 @@ async def add_item_to_board(
 ):
     """Save an item (from Serper search results) to a board."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    success = boards_service.add_item_to_board(user_id, board_id, request.item)
+    success = await boards_service.add_item_to_board(user_id, board_id, request.item)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Board not found"
@@ -70,7 +70,7 @@ async def remove_item_from_board(
 ):
     """Remove an item from a board."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    success = boards_service.remove_item_from_board(user_id, board_id, item_id)
+    success = await boards_service.remove_item_from_board(user_id, board_id, item_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item or board not found"
