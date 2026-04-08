@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import Button from '../../components/atoms/Button/Button'
 import { EyeIcon, EyeOffIcon, GoogleIcon } from '../../components/icons/Icons'
@@ -12,6 +12,19 @@ export default function SignUpPage() {
   const [error, setError] = useState(null)
   const { signUpWithEmail, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    // Check for errors returned from Supabase OAuth
+    const hash = window.location.hash
+    if (hash && hash.includes('error_description')) {
+      const params = new URLSearchParams(hash.replace('#', '?'))
+      const errorDescription = params.get('error_description')
+      if (errorDescription) {
+        setError(errorDescription.replace(/\+/g, ' '))
+      }
+    }
+  }, [location])
 
   async function handleSignUp(e) {
     e.preventDefault()
