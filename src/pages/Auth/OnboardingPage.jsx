@@ -8,8 +8,8 @@ import './OnboardingPage.css' // We will create this
 
 const AESTHETICS = ['Streetwear', 'Old Money', 'Minimalist', 'Y2K', 'Gorpcore', 'Dark Academia', 'Athleisure', 'Quiet Luxury']
 const BRANDS = ['Zara', 'ASOS', 'SSENSE', 'H&M', 'Uniqlo', 'Urban Outfitters', 'Aritzia', 'Nike']
-const GENDERS = ['Menswear', 'Womenswear', 'Androgynous / Unisex']
-const FITS = ['Oversized', 'Tailored / Slim', 'Relaxed']
+const GENDERS = ['Male', 'Female']
+const FITS = ['Oversized', 'Tailored / Slim', 'Relaxed', 'Not Sure / Skip']
 
 export default function OnboardingPage() {
   const { user } = useAuth()
@@ -22,7 +22,6 @@ export default function OnboardingPage() {
   const [age, setAge] = useState('')
   const [gender, setGender] = useState('')
   const [fit, setFit] = useState('')
-  const [selectedBrands, setSelectedBrands] = useState([])
   const [selectedAesthetics, setSelectedAesthetics] = useState([])
 
   function toggleArrayItem(array, setArray, item) {
@@ -53,8 +52,23 @@ export default function OnboardingPage() {
       })
       if (error) throw error
       
-      // Also optionally push this to the backend API so TasteService is saturated 
-      // We will do this later via Profile page fetching from User Metadata.
+      // 2. Prime the backend taste profile with selected aesthetics
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        await fetch('http://localhost:8000/api/discovery/initialize-taste', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            age: parseInt(age),
+            gender,
+            fit_preference: fit,
+            aesthetics: selectedAesthetics
+          })
+        })
+      }
       
       navigate('/')
     } catch (err) {
@@ -71,7 +85,7 @@ export default function OnboardingPage() {
         <div className="onboarding-header">
           <span className="gradient-text">Personalize your feed</span>
           <div className="onboarding-progress">
-            Step {step} of 4
+            Step {step} of 3
           </div>
         </div>
 
@@ -87,7 +101,7 @@ export default function OnboardingPage() {
               onChange={e => setAge(e.target.value)} 
             />
             
-            <label style={{marginTop: 'var(--space-4)'}}>What do you mostly shop for?</label>
+            <label style={{marginTop: 'var(--space-4)'}}>Select your gender</label>
             <div className="onboarding-options">
               {GENDERS.map(g => (
                 <div 
@@ -131,7 +145,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="onboarding-step">
             <h3>Select your favorite aesthetics</h3>
-            <p className="text-secondary" style={{marginBottom: 'var(--space-3)'}}>Pick at least 2</p>
+            <p className="text-secondary" style={{marginBottom: 'var(--space-3)'}}>Pick at least 1</p>
             <div className="onboarding-tags">
               {AESTHETICS.map(a => (
                 <Badge 
@@ -145,34 +159,13 @@ export default function OnboardingPage() {
 
             <div style={{display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-4)'}}>
               <Button variant="secondary" onClick={() => setStep(2)}>Back</Button>
-              <Button variant="primary" fullWidth onClick={() => setStep(4)} disabled={selectedAesthetics.length < 2}>Continue</Button>
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="onboarding-step">
-             <h3>Select your go-to brands</h3>
-            <p className="text-secondary" style={{marginBottom: 'var(--space-3)'}}>This helps the AI find better matches</p>
-            <div className="onboarding-tags">
-              {BRANDS.map(b => (
-                <Badge 
-                  key={b} 
-                  label={b} 
-                  variant={selectedBrands.includes(b) ? 'active' : 'default'} 
-                  onClick={() => toggleArrayItem(selectedBrands, setSelectedBrands, b)}
-                />
-              ))}
-            </div>
-
-            <div style={{display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-4)'}}>
-              <Button variant="secondary" onClick={() => setStep(3)} disabled={loading}>Back</Button>
-              <Button variant="primary" fullWidth onClick={handleFinish} disabled={loading || selectedBrands.length === 0}>
+              <Button variant="primary" fullWidth onClick={handleFinish} disabled={selectedAesthetics.length < 1 || loading}>
                 {loading ? 'Saving...' : 'Finish Setup'}
               </Button>
             </div>
           </div>
         )}
+
 
       </div>
     </div>

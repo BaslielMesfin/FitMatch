@@ -124,6 +124,25 @@ class TasteService:
             if float(weight) > 0
         }
 
+    async def initialize_profile(self, user_id: str, aesthetics_list: List[str]):
+        """Prime the taste profile with onboarding aesthetics."""
+        profile = await self.get_profile(user_id)
+        current_weights = profile.get("aesthetics", {tag: 0.0 for tag in AESTHETIC_CATEGORIES})
+        
+        # Set selected aesthetics to 0.7 (strong starting signal)
+        for name in aesthetics_list:
+            if name in current_weights:
+                current_weights[name] = 0.7
+                
+        updated_profile = {
+            "user_id": user_id,
+            "aesthetics": current_weights,
+            "interaction_count": 1 # Count as first interaction
+        }
+        
+        self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+        return updated_profile
+
 
 # ---- Singleton ----
 

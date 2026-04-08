@@ -6,7 +6,7 @@ Handles the Pinterest-style discovery feed and item interactions.
 from fastapi import APIRouter, Depends, Query
 
 from app.core.auth import get_optional_user
-from app.models.schemas import DiscoveryResponse, ItemResponse, LikeRequest
+from app.models.schemas import DiscoveryResponse, ItemResponse, LikeRequest, OnboardRequest
 from app.services.search_service import BaseSearchProvider, get_search_service
 from app.services.taste_service import TasteService, get_taste_service
 
@@ -29,16 +29,39 @@ async def get_discovery_feed(
     limit: int = Query(20, ge=1, le=50),
     user: dict | None = Depends(get_optional_user),
     search_service: BaseSearchProvider = Depends(get_search_service),
+    taste_service: TasteService = Depends(get_taste_service),
 ):
     """
     Get the personalized discovery feed.
-    Uses query rotation for pagination to keep results fresh.
+    Prioritizes user taste profile and gender if authenticated.
     """
+    user_id = user.get("sub") if user else None
+    
+    # 1. Determine the core query
     if aesthetic:
-        query = f"{aesthetic} clothing outfits fashion"
+        query = f"{aesthetic} fashion clothing"
+    elif user_id:
+        # Personalized rotation: Pick one of their top 2 aesthetics
+        top_aesthetics = await taste_service.get_top_aesthetics(user_id, top_n=2)
+        if top_aesthetics:
+            # Use page number to rotate between top aesthetics if multiple exist
+            idx = (page - 1) % len(top_aesthetics)
+            query = f"{top_aesthetics[idx][0]} fashion clothing"
+        else:
+            idx = (page - 1) % len(ROTATION_QUERIES)
+            query = ROTATION_QUERIES[idx]
     else:
         idx = (page - 1) % len(ROTATION_QUERIES)
         query = ROTATION_QUERIES[idx]
+
+    # 2. Add gender context from metadata if available
+    if user:
+        metadata = user.get("user_metadata", {})
+        gender = metadata.get("gender")
+        if gender:
+            # Male/Female -> adds 'menswear' or 'womenswear' to narrow results
+            gender_term = "menswear" if gender.lower() == "male" else "womenswear"
+            query = f"{query} {gender_term}"
 
     brands = [brand] if brand else None
 
@@ -98,3 +121,19 @@ async def get_user_taste(
         "preferred_brands": profile["preferred_brands"],
         "interaction_count": profile["interaction_count"],
     }
+
+
+@router.post("/initialize-taste")
+async def initialize_taste(
+    request: OnboardRequest,
+    user: dict | None = Depends(get_optional_user),
+    taste_service: TasteService = Depends(get_taste_service),
+):
+    """Prime the user's taste profile from onboarding data."""
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    user_id = user.get("sub")
+    await taste_service.initialize_profile(user_id, request.aesthetics)
+    
+    return {"status": "ok", "message": "Taste profile initialized"}
