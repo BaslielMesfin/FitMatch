@@ -8,19 +8,38 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Safety timeout: Ensure the app renders even if getSession hangs
+    const timeout = setTimeout(() => {
+      console.warn("AuthProvider: Auth initialization timed out. Rendering app...")
+      setLoading(false)
+    }, 3000)
+
     // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      clearTimeout(timeout)
+      console.log("AuthProvider: getSession result", { session, error })
+      if (error) {
+        console.error("AuthProvider: getSession error", error)
+      }
       setUser(session?.user ?? null)
+      setLoading(false)
+    }).catch(err => {
+      clearTimeout(timeout)
+      console.error("AuthProvider: getSession fatal error", err)
       setLoading(false)
     })
 
     // Listen for changes on auth state (log in, log out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("AuthProvider: onAuthStateChange event", _event, session?.user?.email)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      console.log("AuthProvider: Cleaning up subscription")
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Provide utility functions
