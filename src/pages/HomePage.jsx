@@ -83,7 +83,7 @@ export default function HomePage() {
           fetchFeed(activeTag, nextPage, true)
         }
       },
-      { rootMargin: '400px' }
+      { rootMargin: '600px' }
     )
 
     if (sentinelRef.current) {
@@ -128,7 +128,7 @@ export default function HomePage() {
           />
           {/* Sentinel for infinite scroll */}
           {hasMore && (
-            <div ref={sentinelRef} style={{ height: '1px' }} />
+            <div ref={sentinelRef} style={{ height: '20px', margin: '20px 0' }} />
           )}
           {loadingMore && (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
