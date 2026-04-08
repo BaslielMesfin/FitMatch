@@ -29,7 +29,7 @@ class BaseSearchProvider(ABC):
 
     @abstractmethod
     async def search_products(
-        self, query: str, brands: list[str] | None = None, max_results: int = 20
+        self, query: str, brands: list[str] | None = None, max_results: int = 20, page: int = 1
     ) -> list[ItemResponse]:
         """Search for products matching the query."""
         ...
@@ -44,7 +44,7 @@ class SerperSearchProvider(BaseSearchProvider):
         self._settings = settings or get_settings()
 
     async def search_products(
-        self, query: str, brands: list[str] | None = None, max_results: int = 20
+        self, query: str, brands: list[str] | None = None, max_results: int = 20, page: int = 1
     ) -> list[ItemResponse]:
         """
         Search Serper.dev Shopping API for products.
@@ -60,16 +60,16 @@ class SerperSearchProvider(BaseSearchProvider):
             results = []
             for brand in brands:
                 brand_query = f"{query} {brand}"
-                items = await self._search_single(brand_query, brand, max_results // len(brands))
+                items = await self._search_single(brand_query, brand, max_results // len(brands), page=page)
                 results.extend(items)
             return results[:max_results]
         else:
             # Broad search — single query, let Google Shopping return diverse brands
-            items = await self._search_single(query, "", max_results)
+            items = await self._search_single(query, "", max_results, page=page)
             return items[:max_results]
 
     async def _search_single(
-        self, query: str, brand: str, max_results: int
+        self, query: str, brand: str, max_results: int, page: int = 1
     ) -> list[ItemResponse]:
         """Execute a single search query against Serper."""
         try:
@@ -83,6 +83,7 @@ class SerperSearchProvider(BaseSearchProvider):
                     json={
                         "q": query,
                         "num": max_results,
+                        "start": (page - 1) * max_results + 1
                     },
                 )
                 response.raise_for_status()

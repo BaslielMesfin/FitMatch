@@ -31,7 +31,7 @@ export default function HomePage() {
     else setLoadingMore(true)
 
     try {
-      const response = await discoveryApi.getFeed({ aesthetic, limit: 20, page: pageNum })
+      const response = await discoveryApi.getFeed({ aesthetic, limit: 10, page: pageNum })
       if (response.items && response.items.length > 0) {
         if (append) {
           setItems(prev => [...prev, ...response.items])

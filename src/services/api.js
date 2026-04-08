@@ -7,13 +7,19 @@
  * so components only import what they need.
  */
 
+import { supabase } from '../lib/supabase'
+
 const API_BASE = 'http://localhost:8000/api'
 
 async function request(endpoint, options = {}) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+
   const url = `${API_BASE}${endpoint}`
   const config = {
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
     },
     ...options,
