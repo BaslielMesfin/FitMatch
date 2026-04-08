@@ -59,7 +59,12 @@ export function AuthProvider({ children }) {
       })
     },
     async signInWithGoogle() {
-      return supabase.auth.signInWithOAuth({ provider: 'google' })
+      return supabase.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/login`
+        }
+      })
     },
     async signOut() {
       return supabase.auth.signOut()
