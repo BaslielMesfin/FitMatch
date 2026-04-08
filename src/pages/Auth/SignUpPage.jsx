@@ -8,7 +8,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const { user, loading, signUpWithEmail, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
@@ -34,17 +34,17 @@ export default function SignUpPage() {
 
   async function handleSignUp(e) {
     e.preventDefault()
-    setLoading(true)
+    setIsSubmitting(true)
     setError(null)
     
     const { data, error } = await signUpWithEmail(email, password)
     
     if (error) {
       setError(error.message)
-      setLoading(false)
+      setIsSubmitting(false)
     } else if (data && data.session === null) {
       setError('Confirmation email sent! Please check your inbox and verify your email before logging in.')
-      setLoading(false)
+      setIsSubmitting(false)
     } else {
       navigate('/onboarding')
     }
@@ -78,8 +78,8 @@ export default function SignUpPage() {
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
-        <Button variant="primary" size="lg" fullWidth disabled={loading} type="submit">
-          {loading ? 'Signing up...' : 'Create Account'}
+        <Button variant="primary" size="lg" fullWidth disabled={isSubmitting} type="submit">
+          {isSubmitting ? 'Signing up...' : 'Create Account'}
         </Button>
       </form>
 
