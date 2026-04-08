@@ -12,6 +12,19 @@ export default function LoginPage() {
   const [error, setError] = useState(null)
   const { signInWithEmail, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    // Check for errors returned from Supabase OAuth
+    const hash = window.location.hash
+    if (hash && hash.includes('error_description')) {
+      const params = new URLSearchParams(hash.replace('#', '?'))
+      const errorDescription = params.get('error_description')
+      if (errorDescription) {
+        setError(errorDescription.replace(/\+/g, ' '))
+      }
+    }
+  }, [location])
 
   async function handleLogin(e) {
     e.preventDefault()
