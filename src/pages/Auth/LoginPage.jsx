@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const { user, loading, signInWithEmail, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
@@ -34,13 +34,13 @@ export default function LoginPage() {
 
   async function handleLogin(e) {
     e.preventDefault()
-    setLoading(true)
+    setIsSubmitting(true)
     setError(null)
     const { error } = await signInWithEmail(email, password)
     
     if (error) {
       setError(error.message)
-      setLoading(false)
+      setIsSubmitting(false)
     } else {
       navigate('/')
     }
@@ -73,8 +73,8 @@ export default function LoginPage() {
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
-        <Button variant="primary" size="lg" fullWidth disabled={loading} type="submit">
-          {loading ? 'Logging in...' : 'Log In'}
+        <Button variant="primary" size="lg" fullWidth disabled={isSubmitting} type="submit">
+          {isSubmitting ? 'Logging in...' : 'Log In'}
         </Button>
       </form>
 
