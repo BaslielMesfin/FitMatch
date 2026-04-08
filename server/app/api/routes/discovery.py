@@ -69,6 +69,7 @@ async def get_discovery_feed(
         query=query,
         brands=brands,
         max_results=limit,
+        page=page,
     )
 
     return DiscoveryResponse(
