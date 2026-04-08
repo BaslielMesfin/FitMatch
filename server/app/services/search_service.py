@@ -53,7 +53,7 @@ class SerperSearchProvider(BaseSearchProvider):
         """
         if not self._settings.serper_api_key:
             logger.warning("Serper API key not set — returning mock results")
-            return self._get_fallback_results(query)
+            return self._get_fallback_results(query, page)
 
         if brands:
             # User explicitly wants specific brands — search per-brand
@@ -148,40 +148,42 @@ class SerperSearchProvider(BaseSearchProvider):
         return float(numbers[0]) if numbers else 0.0
 
     @staticmethod
-    def _get_fallback_results(query: str) -> list[ItemResponse]:
+    def _get_fallback_results(query: str, page: int = 1) -> list[ItemResponse]:
         """Return mock results when API key is not configured."""
-        return [
-            ItemResponse(
-                id="fallback-1",
-                title=f"Sample: {query} — Structured Blazer",
-                brand="Zara",
-                price=89.90,
-                image_url="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&h=550&fit=crop",
-                product_url="#",
-                store="Zara",
-                aesthetic_tags=["Quiet Luxury"],
-            ),
-            ItemResponse(
-                id="fallback-2",
-                title=f"Sample: {query} — Linen Shirt",
-                brand="ASOS",
-                price=38.00,
-                image_url="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=520&fit=crop",
-                product_url="#",
-                store="ASOS",
-                aesthetic_tags=["Minimalist"],
-            ),
-            ItemResponse(
-                id="fallback-3",
-                title=f"Sample: {query} — Leather Sneakers",
-                brand="SSENSE",
-                price=295.00,
-                image_url="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=500&fit=crop",
-                product_url="#",
-                store="SSENSE",
-                aesthetic_tags=["Streetwear"],
-            ),
+        # Use page to vary the IDs and titles slightly
+        items = []
+        brands = ["Zara", "ASOS", "SSENSE", "H&M", "Uniqlo", "Aritzia"]
+        
+        # High-quality Unsplash fashion placeholders that match different vibes
+        images = [
+            "https://images.unsplash.com/photo-1594938298603-c8148c4dae35", # Blazer
+            "https://images.unsplash.com/photo-1596755094514-f87e34085b2c", # Shirt
+            "https://images.unsplash.com/photo-1549298916-b41d501d3772", # Sneaker
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f", # Yellow set
+            "https://images.unsplash.com/photo-1539109139133-e4a851b50186", # Streetwear
+            "https://images.unsplash.com/photo-1581044777550-4cfa60707c03", # Minimalist
+            "https://images.unsplash.com/photo-1554412933-514a83d2f3c8", # Dress
+            "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3", # Techwear
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae", # Pink
+            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105", # Knit
         ]
+        
+        for i in range(10):
+            idx = (i + (page - 1) * 10) % len(images)
+            brand = brands[i % len(brands)]
+            items.append(
+                ItemResponse(
+                    id=f"fallback-{page}-{i}",
+                    title=f"{query.title()} — {brand} Selection {i+1}",
+                    brand=brand,
+                    price=float(20 + (i * 15)),
+                    image_url=f"{images[idx]}?w=400&h=600&fit=crop",
+                    product_url="#",
+                    store=brand,
+                    aesthetic_tags=[query.split()[0].title()] if query else []
+                )
+            )
+        return items
 
 
 # ---- Factory ----

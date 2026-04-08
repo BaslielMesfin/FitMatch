@@ -75,6 +75,8 @@ export default function OnboardingPage() {
       }
 
       // 3. Refresh local auth state to recognize 'onboarded' status
+      // Add a small delay for Supabase propagation
+      await new Promise(resolve => setTimeout(resolve, 500))
       await refreshUser()
       
       navigate('/')
