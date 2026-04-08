@@ -15,9 +15,13 @@ export default function LoginPage() {
   const location = useLocation()
 
   useEffect(() => {
-    // 1. If user is already logged in (e.g. from Google redirect), send home
+    // 1. If user is already logged in, check onboarding
     if (!loading && user) {
-      navigate('/')
+      if (user.user_metadata?.onboarded) {
+        navigate('/')
+      } else {
+        navigate('/onboarding')
+      }
       return
     }
 

@@ -96,3 +96,11 @@ class LikeRequest(BaseModel):
 class BoardItemAddRequest(BaseModel):
     """Add an item to a board."""
     item: ItemResponse
+
+
+class OnboardRequest(BaseModel):
+    """Initial onboarding data."""
+    age: int
+    gender: str
+    fit_preference: str
+    aesthetics: list[str]
