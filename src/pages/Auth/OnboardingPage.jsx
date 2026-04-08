@@ -55,7 +55,7 @@ export default function OnboardingPage() {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
-          await fetch('http://localhost:8000/api/discovery/initialize-taste', {
+          await fetch('http://127.0.0.1:8000/api/discovery/initialize-taste', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
