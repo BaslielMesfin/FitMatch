@@ -51,22 +51,27 @@ export default function OnboardingPage() {
       })
       if (error) throw error
       
-      // 2. Prime the backend taste profile with selected aesthetics
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        await fetch('http://localhost:8000/api/discovery/initialize-taste', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            age: parseInt(age),
-            gender,
-            fit_preference: fit,
-            aesthetics: selectedAesthetics
+      // 2. Prime the backend taste profile with selected aesthetics (Optional/Non-blocking)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          await fetch('http://localhost:8000/api/discovery/initialize-taste', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+              age: parseInt(age),
+              gender,
+              fit_preference: fit,
+              aesthetics: selectedAesthetics
+            })
           })
-        })
+        }
+      } catch (backendError) {
+        console.warn("Backend priming skipped or failed:", backendError.message)
+        // We continue anyway since metadata is saved in Supabase
       }
 
       // 3. Refresh local auth state to recognize 'onboarded' status
