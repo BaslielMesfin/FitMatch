@@ -51,13 +51,21 @@ export default function HomePage() {
       }
     } catch (err) {
       console.warn('API unavailable, using mock data:', err.message)
-      if (!append) {
+      if (append) {
+        // Generate more mock items to keep the scroll feeling 'alive'
+        const moreMocks = Array.from({ length: 10 }).map((_, i) => ({
+          ...MOCK_ITEMS[i % MOCK_ITEMS.length],
+          id: `mock-p${pageNum}-${i}`,
+          title: `Sample: ${aesthetic || 'Discovery'} — Item ${items.length + i + 1}`
+        }))
+        setItems(prev => [...prev, ...moreMocks])
+      } else {
         const filtered = aesthetic
           ? MOCK_ITEMS.filter(item => item.aesthetic_tags?.includes(aesthetic))
           : MOCK_ITEMS
         setItems(filtered)
       }
-      setHasMore(false)
+      // Keep hasMore true so mocks can continue to paginate
     } finally {
       setLoading(false)
       setLoadingMore(false)
