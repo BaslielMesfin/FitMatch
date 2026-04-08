@@ -15,7 +15,13 @@ export default function SignUpPage() {
   const location = useLocation()
 
   useEffect(() => {
-    // Check for errors returned from Supabase OAuth
+    // 1. If user is already logged in (e.g. from Google redirect), send to onboarding
+    if (!loading && user) {
+      navigate('/onboarding')
+      return
+    }
+
+    // 2. Check for errors returned from Supabase OAuth
     const hash = window.location.hash
     if (hash && hash.includes('error_description')) {
       const params = new URLSearchParams(hash.replace('#', '?'))
@@ -24,7 +30,7 @@ export default function SignUpPage() {
         setError(errorDescription.replace(/\+/g, ' '))
       }
     }
-  }, [location])
+  }, [user, loading, location])
 
   async function handleSignUp(e) {
     e.preventDefault()
