@@ -45,7 +45,6 @@ export default function OnboardingPage() {
           age: parseInt(age),
           gender,
           fit_preference: fit,
-          preferred_brands: selectedBrands,
           aesthetics: selectedAesthetics,
           onboarded: true
         }
