@@ -12,7 +12,7 @@ const GENDERS = ['Male', 'Female']
 const FITS = ['Oversized', 'Tailored / Slim', 'Relaxed', 'Not Sure / Skip']
 
 export default function OnboardingPage() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const navigate = useNavigate()
   
   const [step, setStep] = useState(1)
@@ -69,6 +69,9 @@ export default function OnboardingPage() {
           })
         })
       }
+
+      // 3. Refresh local auth state to recognize 'onboarded' status
+      await refreshUser()
       
       navigate('/')
     } catch (err) {

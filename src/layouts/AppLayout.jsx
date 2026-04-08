@@ -24,6 +24,17 @@ export default function AppLayout() {
     return <Navigate to="/login" replace />
   }
 
+  // Force onboarding if not completed
+  const needsOnboarding = !user.user_metadata?.onboarded
+  if (needsOnboarding && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />
+  }
+
+  // If already onboarded and trying to go to onboarding, send home
+  if (!needsOnboarding && location.pathname === '/onboarding') {
+    return <Navigate to="/" replace />
+  }
+
   // Use username or standard Mock Name if no onboarding profile is fetched yet
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || "User"
 
