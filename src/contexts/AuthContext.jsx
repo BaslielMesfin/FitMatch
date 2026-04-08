@@ -68,6 +68,13 @@ export function AuthProvider({ children }) {
     },
     async signOut() {
       return supabase.auth.signOut()
+    },
+    async refreshUser() {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (!error && user) {
+        setUser(user)
+      }
+      return { user, error }
     }
   }
 
