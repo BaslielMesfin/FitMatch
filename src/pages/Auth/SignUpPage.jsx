@@ -10,7 +10,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const { signUpWithEmail, signInWithGoogle } = useAuth()
+  const { user, loading, signUpWithEmail, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 

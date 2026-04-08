@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const { signInWithEmail, signInWithGoogle } = useAuth()
+  const { user, loading, signInWithEmail, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
