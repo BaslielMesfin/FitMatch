@@ -19,6 +19,8 @@ class BoardsService:
 
     async def _ensure_default_board(self, user_id: str):
         """Auto-create a default board for new users if it doesn't exist."""
+        if user_id == "anonymous":
+            return
         response = self.supabase.table("boards") \
             .select("id") \
             .eq("user_id", user_id) \
@@ -34,6 +36,9 @@ class BoardsService:
 
     async def get_user_boards(self, user_id: str) -> List[BoardResponse]:
         """List all boards for a user with item counts and cover images."""
+        if user_id == "anonymous":
+            return []
+            
         await self._ensure_default_board(user_id)
         
         # 1. Fetch boards
