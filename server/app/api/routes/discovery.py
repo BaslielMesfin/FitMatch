@@ -9,6 +9,7 @@ from app.core.auth import get_optional_user
 from app.models.schemas import DiscoveryResponse, ItemResponse, LikeRequest, OnboardRequest
 from app.services.search_service import BaseSearchProvider, get_search_service
 from app.services.taste_service import TasteService, get_taste_service
+from app.services.social_service import SocialService, get_social_service
 
 router = APIRouter(prefix="/discovery", tags=["Discovery"])
 
@@ -111,16 +112,22 @@ async def like_item(
 async def get_user_taste(
     user: dict | None = Depends(get_optional_user),
     taste_service: TasteService = Depends(get_taste_service),
+    social_service: SocialService = Depends(get_social_service),
 ):
     """Get the current user's taste profile."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
     profile = await taste_service.get_profile(user_id)
     top = await taste_service.get_top_aesthetics(user_id)
+    
+    followers = await social_service.get_followers_count(user_id) if user_id != "anonymous" else 0
+    following = await social_service.get_following_count(user_id) if user_id != "anonymous" else 0
 
     return {
         "top_aesthetics": [{"name": name, "score": round(score, 2)} for name, score in top],
         "preferred_brands": profile["preferred_brands"],
         "interaction_count": profile["interaction_count"],
+        "followers_count": followers,
+        "following_count": following,
     }
 
 
