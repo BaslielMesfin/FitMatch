@@ -12,7 +12,7 @@ export default function ItemCard({ item, onLike, onSave, onClick, index = 0 }) {
   function handleLike(e) {
     e.stopPropagation()
     setLiked(!liked)
-    onLike?.(item.id, !liked)
+    onLike?.(item.id, !liked, item)
   }
 
   function handleSave(e) {

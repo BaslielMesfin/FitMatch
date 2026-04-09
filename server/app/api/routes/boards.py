@@ -33,15 +33,17 @@ async def create_board(
     return await boards_service.create_board(user_id, request)
 
 
-@router.get("/{board_id}/items", response_model=List[ItemResponse])
+@router.get("/{board_id}/items")
 async def get_board_items(
     board_id: str,
+    page: int = 1,
+    limit: int = 20,
     user: dict | None = Depends(get_optional_user),
     boards_service: BoardsService = Depends(get_boards_service),
 ):
     """List all items saved in a specific board."""
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    return await boards_service.get_board_items(user_id, board_id)
+    return await boards_service.get_board_items(user_id, board_id, page, limit)
 
 
 @router.post("/{board_id}/items")

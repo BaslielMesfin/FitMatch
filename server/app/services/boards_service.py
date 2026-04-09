@@ -81,8 +81,8 @@ class BoardsService:
             cover_images=[]
         )
 
-    async def get_board_items(self, user_id: str, board_id: str) -> List[ItemResponse]:
-        """Get items inside a specific board."""
+    async def get_board_items(self, user_id: str, board_id: str, page: int = 1, limit: int = 20) -> dict:
+        """Get items inside a specific board with pagination."""
         # Verify board ownership
         board_check = self.supabase.table("boards") \
             .select("id") \
@@ -91,15 +91,24 @@ class BoardsService:
             .execute()
         
         if not board_check.data:
-            return []
+            return {"items": [], "has_more": False}
 
+        start = (page - 1) * limit
+        
+        # Fetch limit + 1 items to determine if there are more
         items_res = self.supabase.table("saved_items") \
             .select("*") \
             .eq("board_id", board_id) \
             .order("created_at", desc=True) \
+            .range(start, start + limit) \
             .execute()
         
-        return [
+        data = items_res.data
+        has_more = len(data) > limit
+        if has_more:
+            data = data[:-1]
+        
+        items = [
             ItemResponse(
                 id=item["item_id"],
                 title=item["title"],
@@ -112,8 +121,10 @@ class BoardsService:
                 aesthetic_tags=item.get("aesthetic_tags", []),
                 color=item.get("color"),
                 category=item.get("category")
-            ) for item in items_res.data
+            ) for item in data
         ]
+        
+        return {"items": items, "has_more": has_more}
 
     async def add_item_to_board(self, user_id: str, board_id: str, item: ItemResponse) -> bool:
         """Save an item to a board."""

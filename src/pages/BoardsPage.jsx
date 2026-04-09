@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import BoardPreview from '../components/molecules/BoardPreview/BoardPreview'
 import ItemCard from '../components/molecules/ItemCard/ItemCard'
@@ -17,6 +17,12 @@ export default function BoardsPage() {
   const [boardItems, setBoardItems] = useState([])
   const [loadingItems, setLoadingItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
+  
+  // Pagination extensions
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const sentinelRef = useRef(null)
 
   async function fetchBoards() {
     try {
@@ -47,20 +53,61 @@ export default function BoardsPage() {
   async function handleOpenBoard(board) {
     setSelectedBoard(board)
     setLoadingItems(true)
+    setPage(1)
     try {
-      const items = await boardsApi.getBoardItems(board.id)
-      setBoardItems(items)
+      const response = await boardsApi.getBoardItems(board.id, 1, 20)
+      setBoardItems(response.items || [])
+      setHasMore(response.has_more || false)
     } catch (err) {
       console.error('Failed to load board items:', err)
       setBoardItems([])
+      setHasMore(false)
     } finally {
       setLoadingItems(false)
     }
   }
 
+  const fetchMoreItems = useCallback(async () => {
+    if (!selectedBoard || loadingMore || !hasMore) return
+    setLoadingMore(true)
+    const nextPage = page + 1
+    
+    try {
+      const response = await boardsApi.getBoardItems(selectedBoard.id, nextPage, 20)
+      setBoardItems(prev => [...prev, ...(response.items || [])])
+      setHasMore(response.has_more || false)
+      setPage(nextPage)
+    } catch (err) {
+      console.error('Failed to load more items:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [selectedBoard, loadingMore, hasMore, page])
+
+  useEffect(() => {
+    if (!hasMore || loadingItems) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchMoreItems()
+        }
+      },
+      { rootMargin: '600px' }
+    )
+
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [hasMore, loadingItems, fetchMoreItems])
+
   function handleCloseBoard() {
     setSelectedBoard(null)
     setBoardItems([])
+    setPage(1)
+    setHasMore(false)
     fetchBoards() // Refresh counts
   }
 
@@ -91,11 +138,19 @@ export default function BoardsPage() {
                 ))}
               </div>
             ) : boardItems.length > 0 ? (
-              <div className="masonry-grid" style={{ padding: '0 var(--space-4)' }}>
-                {boardItems.map((item, index) => (
-                  <ItemCard key={item.id} item={item} index={index} onClick={setSelectedItem} />
-                ))}
-              </div>
+              <>
+                <div className="masonry-grid" style={{ padding: '0 var(--space-4)' }}>
+                  {boardItems.map((item, index) => (
+                    <ItemCard key={item.id} item={item} index={index} onClick={setSelectedItem} />
+                  ))}
+                </div>
+                {hasMore && <div ref={sentinelRef} style={{ height: '20px', margin: '20px 0' }} />}
+                {loadingMore && (
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
+                    <Skeleton width="40px" height="40px" style={{ borderRadius: '50%' }} />
+                  </div>
+                )}
+              </>
             ) : (
               <div style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'var(--color-text-tertiary)' }}>
                 <p>This board is empty.</p>

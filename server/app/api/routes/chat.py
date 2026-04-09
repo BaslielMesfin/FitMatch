@@ -32,12 +32,18 @@ async def send_message(
     The AI will respond with styling advice and search for matching products.
     """
     user_id = user.get("sub", "anonymous") if user else "anonymous"
-    taste_profile = taste_service.get_profile(user_id)
+    user_metadata = user.get("user_metadata", {}) if user else {}
+    taste_profile = await taste_service.get_profile(user_id)
+    
+    chat_context = {
+        "demographics_and_fit": user_metadata,
+        "style_dna": taste_profile.get("aesthetics", {})
+    }
 
     # Step 1: Get AI response
     reply = await ai_service.chat_response(
         message=request.message,
-        taste_profile=taste_profile.get("aesthetics"),
+        taste_profile=chat_context,
     )
 
     # Step 2: Translate the user's request into search queries
