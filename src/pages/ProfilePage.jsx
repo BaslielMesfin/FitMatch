@@ -69,9 +69,9 @@ export default function ProfilePage() {
   const preferredBrands = meta.preferred_brands?.join(', ') || tasteProfile?.preferred_brands?.join(', ') || 'Not yet set'
   const interactionCount = tasteProfile?.interaction_count || 0
   
-  // Deterministic but realistic stats
-  const followers = interactionCount * 12 + 42
-  const following = interactionCount * 3 + 18
+  // Real social stats from the backend
+  const followers = tasteProfile?.followers_count || 0
+  const following = tasteProfile?.following_count || 0
 
   return (
     <div className="profile-page">

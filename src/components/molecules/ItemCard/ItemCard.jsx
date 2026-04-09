@@ -7,7 +7,6 @@ import './ItemCard.css'
 
 export default function ItemCard({ item, onLike, onSave, onClick, index = 0 }) {
   const [liked, setLiked] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
 
   function handleLike(e) {
@@ -18,8 +17,7 @@ export default function ItemCard({ item, onLike, onSave, onClick, index = 0 }) {
 
   function handleSave(e) {
     e.stopPropagation()
-    setSaved(!saved)
-    onSave?.(item.id, !saved)
+    onSave?.(item.id)
   }
 
   return (
@@ -55,10 +53,9 @@ export default function ItemCard({ item, onLike, onSave, onClick, index = 0 }) {
               onClick={handleLike}
             />
             <IconButton
-              icon={<BookmarkIcon filled={saved} />}
-              label={saved ? 'Unsave' : 'Save to board'}
+              icon={<BookmarkIcon filled={false} />}
+              label="Save to board"
               variant="glass"
-              active={saved}
               size="sm"
               onClick={handleSave}
             />
