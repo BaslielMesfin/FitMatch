@@ -65,7 +65,7 @@ export default function ItemDetailModal({ item, isOpen, onClose }) {
   async function handleLike() {
     try {
       setLiked(!liked)
-      await discoveryApi.likeItem(item.id, !liked)
+      await discoveryApi.likeItem(item.id, !liked, item)
     } catch {
       // Silent
     }

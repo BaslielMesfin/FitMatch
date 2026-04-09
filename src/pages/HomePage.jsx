@@ -101,9 +101,9 @@ export default function HomePage() {
     return () => observerRef.current?.disconnect()
   }, [hasMore, loadingMore, loading, page, activeTag, fetchFeed])
 
-  async function handleLike(itemId, liked) {
+  async function handleLike(itemId, liked, itemObj) {
     try {
-      await discoveryApi.likeItem(itemId, liked)
+      await discoveryApi.likeItem(itemId, liked, itemObj)
     } catch {
       // Silent
     }

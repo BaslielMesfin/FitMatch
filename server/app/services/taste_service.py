@@ -25,6 +25,16 @@ class TasteService:
 
     async def get_profile(self, user_id: str) -> dict:
         """Get the current taste profile for a user from Supabase."""
+        default_profile = {
+            "user_id": user_id,
+            "aesthetics": {tag: 0.0 for tag in AESTHETIC_CATEGORIES},
+            "preferred_brands": [],
+            "liked_items": [],
+            "interaction_count": 0
+        }
+        if user_id == "anonymous":
+            return default_profile
+
         res = self.supabase.table("taste_profiles") \
             .select("*") \
             .eq("user_id", user_id) \
@@ -42,7 +52,7 @@ class TasteService:
             try:
                 # Use upsert to avoid race conditions
                 ins_res = self.supabase.table("taste_profiles").upsert(default_profile).execute()
-                return ins_res.data[0]
+                return ins_res.data[0] if ins_res.data else default_profile
             except Exception as e:
                 logger.error(f"Error creating taste profile for {user_id}: {e}")
                 return default_profile
@@ -78,7 +88,11 @@ class TasteService:
             "interaction_count": profile.get("interaction_count", 0) + 1
         }
 
-        self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+        if user_id != "anonymous":
+            try:
+                self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+            except Exception:
+                pass
         return updated_profile
 
     async def record_dislike(self, user_id: str, item: dict) -> dict:
@@ -97,7 +111,11 @@ class TasteService:
             "interaction_count": profile.get("interaction_count", 0) + 1
         }
 
-        self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+        if user_id != "anonymous":
+            try:
+                self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+            except Exception:
+                pass
         return updated_profile
 
     async def get_top_aesthetics(self, user_id: str, top_n: int = 4) -> list[tuple[str, float]]:
@@ -140,7 +158,11 @@ class TasteService:
             "interaction_count": 1 # Count as first interaction
         }
         
-        self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+        if user_id != "anonymous":
+            try:
+                self.supabase.table("taste_profiles").upsert(updated_profile).execute()
+            except Exception:
+                pass
         return updated_profile
 
 

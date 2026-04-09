@@ -50,10 +50,15 @@ export const discoveryApi = {
     return request(`/discovery/feed?${params}`)
   },
 
-  async likeItem(itemId, liked = true) {
+  async likeItem(itemId, liked = true, itemObj = null) {
     return request('/discovery/like', {
       method: 'POST',
-      body: JSON.stringify({ item_id: itemId, liked }),
+      body: JSON.stringify({ 
+        item_id: itemId, 
+        liked,
+        aesthetic_tags: itemObj ? itemObj.aesthetic_tags || [] : [],
+        brand: itemObj ? itemObj.brand : null
+      }),
     })
   },
 
@@ -133,8 +138,8 @@ export const boardsApi = {
     return mapBoard(board)
   },
 
-  async getBoardItems(boardId) {
-    return request(`/boards/${boardId}/items`)
+  async getBoardItems(boardId, page = 1, limit = 20) {
+    return request(`/boards/${boardId}/items?page=${page}&limit=${limit}`)
   },
 
   async addItemToBoard(boardId, item) {

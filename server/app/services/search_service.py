@@ -149,38 +149,62 @@ class SerperSearchProvider(BaseSearchProvider):
 
     @staticmethod
     def _get_fallback_results(query: str, page: int = 1) -> list[ItemResponse]:
-        """Return mock results when API key is not configured."""
-        # Use page to vary the IDs and titles slightly
+        """Return mock results intelligently tailored to gender and aesthetic when API is down."""
         items = []
         brands = ["Zara", "ASOS", "SSENSE", "H&M", "Uniqlo", "Aritzia"]
         
-        # High-quality Unsplash fashion placeholders that match different vibes
-        images = [
-            "https://images.unsplash.com/photo-1594938298603-c8148c4dae35", # Blazer
-            "https://images.unsplash.com/photo-1596755094514-f87e34085b2c", # Shirt
-            "https://images.unsplash.com/photo-1549298916-b41d501d3772", # Sneaker
-            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f", # Yellow set
-            "https://images.unsplash.com/photo-1539109139133-e4a851b50186", # Streetwear
-            "https://images.unsplash.com/photo-1581044777550-4cfa60707c03", # Minimalist
-            "https://images.unsplash.com/photo-1554412933-514a83d2f3c8", # Dress
-            "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3", # Techwear
-            "https://images.unsplash.com/photo-1509631179647-0177331693ae", # Pink
-            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105", # Knit
+        is_mens = "menswear" in query.lower()
+        
+        # Gender-specific photography
+        mens_images = [
+            "https://images.unsplash.com/photo-1617137968427-85924c800a22",
+            "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8",
+            "https://images.unsplash.com/photo-1516826957135-700ede19c111",
+            "https://images.unsplash.com/photo-1507680430567-4d5ea6f0e1bf",
+            "https://images.unsplash.com/photo-1489987707023-afc232dce9f2",
+            "https://images.unsplash.com/photo-1480455624313-e29b44bbfde1",
+            "https://images.unsplash.com/photo-1506629082955-511b1aa562c8",
+            "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb",
+            "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
+            "https://images.unsplash.com/photo-1559582930-d013746ce09d",
         ]
         
+        womens_images = [
+            "https://images.unsplash.com/photo-1554412933-514a83d2f3c8",
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae",
+            "https://images.unsplash.com/photo-1564584217132-2271feaeb3c5",
+            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105",
+            "https://images.unsplash.com/photo-1581044777550-4cfa60707c03",
+            "https://images.unsplash.com/photo-1539109139133-e4a851b50186",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c",
+            "https://images.unsplash.com/photo-1550639525-c97d455acf70",
+            "https://images.unsplash.com/photo-1518049362265-f5b249d01f52",
+        ]
+        
+        images = mens_images if is_mens else womens_images
+        
         for i in range(10):
-            idx = (i + (page - 1) * 10) % len(images)
-            brand = brands[i % len(brands)]
+            # Seed the layout logic to vary based on page and index to reduce duplicate spam
+            seed = (page * 17) + (i * 3)
+            idx = seed % len(images)
+            brand = brands[seed % len(brands)]
+            
+            # Format a clean title from the raw query
+            aesthetic_title = query.lower().replace("menswear", "").replace("womenswear", "").strip().title()
+            if not aesthetic_title:
+                aesthetic_title = "Trending Style"
+                
             items.append(
                 ItemResponse(
-                    id=f"fallback-{page}-{i}",
-                    title=f"{query.title()} — {brand} Selection {i+1}",
+                    id=f"fallback-{page}-{i}-{seed}",
+                    title=f"{aesthetic_title} — {brand} Selection",
                     brand=brand,
-                    price=float(20 + (i * 15)),
-                    image_url=f"{images[idx]}?w=400&h=600&fit=crop",
-                    product_url="#",
+                    price=float(30 + (seed % 100)),
+                    image_url=f"{images[idx]}?w=400&h=600&fit=crop&q={seed}",
+                    product_url=f"https://www.{brand.lower().replace(' ', '')}.com",
                     store=brand,
-                    aesthetic_tags=[query.split()[0].title()] if query else []
+                    aesthetic_tags=[aesthetic_title.split()[0]]
                 )
             )
         return items

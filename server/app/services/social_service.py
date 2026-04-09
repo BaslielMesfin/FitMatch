@@ -49,19 +49,25 @@ class SocialService:
 
     async def get_following_count(self, user_id: str) -> int:
         """Count users that this user follows."""
-        res = self.supabase.table("follows") \
-            .select("following_id", count="exact") \
-            .eq("follower_id", user_id) \
-            .execute()
-        return res.count if res.count is not None else 0
+        try:
+            res = self.supabase.table("follows") \
+                .select("following_id", count="exact") \
+                .eq("follower_id", user_id) \
+                .execute()
+            return res.count if hasattr(res, 'count') and res.count is not None else 0
+        except Exception as e:
+            return 0
 
     async def get_followers_count(self, user_id: str) -> int:
         """Count users that follow this user."""
-        res = self.supabase.table("follows") \
-            .select("follower_id", count="exact") \
-            .eq("following_id", user_id) \
-            .execute()
-        return res.count if res.count is not None else 0
+        try:
+            res = self.supabase.table("follows") \
+                .select("follower_id", count="exact") \
+                .eq("following_id", user_id) \
+                .execute()
+            return res.count if hasattr(res, 'count') and res.count is not None else 0
+        except Exception as e:
+            return 0
 
     async def record_global_interaction(self, tags: List[str]):
         """Called when a user likes/saves an item to boost its aesthetic."""
