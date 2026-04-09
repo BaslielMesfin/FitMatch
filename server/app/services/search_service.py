@@ -119,6 +119,8 @@ class SerperSearchProvider(BaseSearchProvider):
                     image_url = ""
 
                 item_brand = brand if brand else result.get("source", "Unknown")
+                merchant_url = f"https://www.{item_brand.lower().replace(' ', '')}.com" if item_brand != "Unknown" else result.get("link", "#")
+                
                 item = ItemResponse(
                     id=f"serper-{item_brand.lower().replace(' ', '')}-{i}-{hash(result.get('title', '')) % 10000}",
                     title=result.get("title", "Unknown Item"),
@@ -126,7 +128,7 @@ class SerperSearchProvider(BaseSearchProvider):
                     price=price,
                     currency="USD",
                     image_url=image_url,
-                    product_url=result.get("link", "#"),
+                    product_url=merchant_url,
                     store=result.get("source", item_brand),
                     aesthetic_tags=[],
                     color=None,
