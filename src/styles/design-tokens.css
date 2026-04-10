@@ -42,8 +42,8 @@
   --color-text-on-primary: #FFFFFF;
 
   /* Liquid Glass Core Variables */
-  --glass-surface: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-surface: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.2);
 
   /* ---- Semantic Colors ---- */
   --color-success: #22C55E;
