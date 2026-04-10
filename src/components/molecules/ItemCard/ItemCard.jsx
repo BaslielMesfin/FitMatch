@@ -5,14 +5,12 @@ import IconButton from '../../atoms/IconButton/IconButton'
 import { HeartIcon, BookmarkIcon } from '../../icons/Icons'
 import './ItemCard.css'
 
-export default function ItemCard({ item, onLike, onSave, onClick, index = 0 }) {
-  const [liked, setLiked] = useState(false)
+export default function ItemCard({ item, isLiked = false, onLike, onSave, onClick, index = 0 }) {
   const [imgLoaded, setImgLoaded] = useState(false)
 
   function handleLike(e) {
     e.stopPropagation()
-    setLiked(!liked)
-    onLike?.(item.id, !liked, item)
+    onLike?.(item.id, !isLiked, item)
   }
 
   function handleSave(e) {
@@ -45,10 +43,10 @@ export default function ItemCard({ item, onLike, onSave, onClick, index = 0 }) {
         <div className="item-card__overlay">
           <div className="item-card__actions">
             <IconButton
-              icon={<HeartIcon filled={liked} />}
-              label={liked ? 'Unlike' : 'Like'}
+              icon={<HeartIcon filled={isLiked} />}
+              label={isLiked ? 'Unlike' : 'Like'}
               variant="glass"
-              active={liked}
+              active={isLiked}
               size="sm"
               onClick={handleLike}
             />
