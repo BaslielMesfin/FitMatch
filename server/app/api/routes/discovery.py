@@ -98,10 +98,7 @@ async def like_item(
         "brand": request.brand
     }
     
-    if request.item_data:
-        # Legacy/Fallback override
-        item_dict["aesthetic_tags"] = request.item_data.get("aesthetic_tags", [])
-        item_dict["brand"] = request.item_data.get("brand")
+
 
     if request.liked:
         await taste_service.record_like(user_id, item_dict)

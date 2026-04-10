@@ -119,7 +119,9 @@ class SerperSearchProvider(BaseSearchProvider):
                     image_url = ""
 
                 item_brand = brand if brand else result.get("source", "Unknown")
-                merchant_url = f"https://www.{item_brand.lower().replace(' ', '')}.com" if item_brand != "Unknown" else result.get("link", "#")
+                merchant_url = result.get("link", "")
+                if not merchant_url:
+                    merchant_url = f"https://www.{item_brand.lower().replace(' ', '')}.com" if item_brand != "Unknown" else "#"
                 
                 item = ItemResponse(
                     id=f"serper-{item_brand.lower().replace(' ', '')}-{i}-{hash(result.get('title', '')) % 10000}",
