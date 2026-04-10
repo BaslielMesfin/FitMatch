@@ -11,9 +11,12 @@ from app.core.supabase import get_supabase
 logger = logging.getLogger(__name__)
 
 AESTHETIC_CATEGORIES = [
-    "Old Money", "Streetwear", "Minimalist", "Y2K", "Dark Academia",
-    "Coastal Grandmother", "Quiet Luxury", "Gorpcore", "Coquette",
-    "Bohemian", "Preppy", "Grunge", "Athleisure", "Cottagecore"
+    "Streetwear", "Old Money", "Minimalist", "Y2K", "Dark Academia", "Light Academia",
+    "Coastal Grandmother", "Quiet Luxury", "Gorpcore", "Coquette", "Bohemian", 
+    "Preppy", "Grunge", "Athleisure", "Cottagecore", "Cyberpunk", "Avant-Garde",
+    "Techwear", "Vintage", "Skater", "Soft Girl", "E-Girl", "Indie Sleaze", 
+    "Acubi", "Balletcore", "Fairycore", "Eclectic Grandpa", "Opium", "Normcore",
+    "Goth", "Business Casual", "Smart Casual", "High Fashion"
 ]
 
 
@@ -69,9 +72,12 @@ class TasteService:
         
         # 1. Update aesthetic weights
         aesthetics = profile.get("aesthetics", {})
+        if not isinstance(aesthetics, dict):
+            aesthetics = {}
+            
         for tag in item.get("aesthetic_tags", []):
-            if tag in aesthetics:
-                current = float(aesthetics[tag])
+            if tag in AESTHETIC_CATEGORIES:
+                current = float(aesthetics.get(tag, 0.0))
                 aesthetics[tag] = min(1.0, current * 0.9 + 0.1)
 
         # 2. Update brands
@@ -104,9 +110,12 @@ class TasteService:
         profile = await self.get_profile(user_id)
         
         aesthetics = profile.get("aesthetics", {})
+        if not isinstance(aesthetics, dict):
+            aesthetics = {}
+            
         for tag in item.get("aesthetic_tags", []):
-            if tag in aesthetics:
-                current = float(aesthetics[tag])
+            if tag in AESTHETIC_CATEGORIES:
+                current = float(aesthetics.get(tag, 0.0))
                 aesthetics[tag] = max(0.0, current * 0.95 - 0.02)
 
         updated_profile = {
@@ -122,7 +131,7 @@ class TasteService:
                 pass
         return updated_profile
 
-    async def get_top_aesthetics(self, user_id: str, top_n: int = 4) -> list[tuple[str, float]]:
+    async def get_top_aesthetics(self, user_id: str, top_n: int = 3) -> list[tuple[str, float]]:
         """Get the user's top N aesthetic preferences."""
         profile = await self.get_profile(user_id)
         aesthetics = profile.get("aesthetics", {})
@@ -149,11 +158,18 @@ class TasteService:
     async def initialize_profile(self, user_id: str, aesthetics_list: List[str]):
         """Prime the taste profile with onboarding aesthetics."""
         profile = await self.get_profile(user_id)
-        current_weights = profile.get("aesthetics", {tag: 0.0 for tag in AESTHETIC_CATEGORIES})
+        current_weights = profile.get("aesthetics", {})
+        if not isinstance(current_weights, dict) or not current_weights:
+            current_weights = {tag: 0.0 for tag in AESTHETIC_CATEGORIES}
+        else:
+            # Ensure all categories exist
+            for tag in AESTHETIC_CATEGORIES:
+                if tag not in current_weights:
+                    current_weights[tag] = 0.0
         
         # Set selected aesthetics to 0.7 (strong starting signal)
         for name in aesthetics_list:
-            if name in current_weights:
+            if name in AESTHETIC_CATEGORIES:
                 current_weights[name] = 0.7
                 
         updated_profile = {

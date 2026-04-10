@@ -107,7 +107,7 @@ class SerperSearchProvider(BaseSearchProvider):
         shopping_results = data.get("shopping", [])
 
         # Infer aesthetic context from the search query
-        categories = ["Old Money", "Streetwear", "Minimalist", "Y2K", "Dark Academia", "Coastal Grandmother", "Quiet Luxury", "Gorpcore", "Coquette", "Bohemian", "Preppy", "Grunge", "Athleisure", "Cottagecore"]
+        categories = ["Streetwear", "Old Money", "Minimalist", "Y2K", "Dark Academia", "Light Academia", "Coastal Grandmother", "Quiet Luxury", "Gorpcore", "Coquette", "Bohemian", "Preppy", "Grunge", "Athleisure", "Cottagecore", "Cyberpunk", "Avant-Garde", "Techwear", "Vintage", "Skater", "Soft Girl", "E-Girl", "Indie Sleaze", "Acubi", "Balletcore", "Fairycore", "Eclectic Grandpa", "Opium", "Normcore", "Goth", "Business Casual", "Smart Casual", "High Fashion"]
         detected_tags = [cat for cat in categories if cat.lower() in query.lower()]
 
         for i, result in enumerate(shopping_results):
