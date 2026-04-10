@@ -21,7 +21,9 @@
   position: relative;
   width: 100%;
   max-height: 92vh;
-  background: var(--color-white);
+  background: var(--glass-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   z-index: var(--z-modal);
   overflow-y: auto;
@@ -45,7 +47,7 @@
   padding: var(--space-3) var(--space-4);
   position: sticky;
   top: 0;
-  background: var(--color-white);
+  background: transparent;
   z-index: 1;
 }
 
