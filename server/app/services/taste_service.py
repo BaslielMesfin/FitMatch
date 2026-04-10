@@ -35,11 +35,15 @@ class TasteService:
         if user_id == "anonymous":
             return default_profile
 
-        res = self.supabase.table("taste_profiles") \
-            .select("*") \
-            .eq("user_id", user_id) \
-            .execute()
-        
+        try:
+            res = self.supabase.table("taste_profiles") \
+                .select("*") \
+                .eq("user_id", user_id) \
+                .execute()
+        except Exception as e:
+            logger.error(f"Error fetching taste profile: Database schema likely missing. {e}")
+            return default_profile
+            
         if not res.data:
             # Create a default profile if it doesn't exist
             default_profile = {

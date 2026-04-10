@@ -21,11 +21,15 @@ class BoardsService:
         """Auto-create a default board for new users if it doesn't exist."""
         if user_id == "anonymous":
             return
-        response = self.supabase.table("boards") \
-            .select("id") \
-            .eq("user_id", user_id) \
-            .eq("name", "All Saves") \
-            .execute()
+        try:
+            response = self.supabase.table("boards") \
+                .select("id") \
+                .eq("user_id", user_id) \
+                .eq("name", "All Saves") \
+                .execute()
+        except Exception as e:
+            print(f"Schema error checking default board: {e}")
+            return
         
         if not response.data:
             self.supabase.table("boards").insert({
@@ -71,6 +75,15 @@ class BoardsService:
 
     async def create_board(self, user_id: str, board: BoardCreate) -> BoardResponse:
         """Create a new board."""
+        if user_id == "anonymous":
+            return BoardResponse(
+                id="mock-board-id",
+                name=board.name,
+                description=board.description,
+                item_count=0,
+                cover_images=[]
+            )
+            
         res = self.supabase.table("boards").insert({
             "user_id": user_id,
             "name": board.name,
@@ -88,6 +101,9 @@ class BoardsService:
 
     async def get_board_items(self, user_id: str, board_id: str, page: int = 1, limit: int = 20) -> dict:
         """Get items inside a specific board with pagination."""
+        if user_id == "anonymous":
+            return {"items": [], "has_more": False}
+
         # Verify board ownership
         board_check = self.supabase.table("boards") \
             .select("id") \
@@ -133,6 +149,9 @@ class BoardsService:
 
     async def add_item_to_board(self, user_id: str, board_id: str, item: ItemResponse) -> bool:
         """Save an item to a board."""
+        if user_id == "anonymous":
+            return False
+
         # Verify board ownership
         board_check = self.supabase.table("boards") \
             .select("id") \
@@ -166,6 +185,9 @@ class BoardsService:
 
     async def remove_item_from_board(self, user_id: str, board_id: str, item_id: str) -> bool:
         """Remove an item from a board."""
+        if user_id == "anonymous":
+            return False
+
         # Verify board ownership
         board_check = self.supabase.table("boards") \
             .select("id") \
