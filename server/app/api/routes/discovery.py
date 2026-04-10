@@ -14,11 +14,20 @@ from app.services.social_service import SocialService, get_social_service
 router = APIRouter(prefix="/discovery", tags=["Discovery"])
 
 ROTATION_QUERIES = [
-    "trending fashion clothing outfits",
-    "designer tops jackets bottoms",
     "casual streetwear hoodies pants",
-    "luxury wardrobe essentials dresses",
+    "old money luxury wardrobe essentials",
     "modern minimalist fashion clothing",
+    "y2k vintage aesthetic outfits",
+    "gorpcore outdoor utility fashion",
+    "coastal grandmother summer linen outfits",
+    "dark academia blazers trousers aesthetics",
+    "preppy chic polo fashion",
+    "avant-garde structural designer clothes",
+    "cyberpunk futuristic techwear",
+    "indie sleaze grunge fashion",
+    "balletcore soft girl aesthetic",
+    "eclectic grandpa knitwear fashion",
+    "business casual smart trousers blazers"
 ]
 
 
