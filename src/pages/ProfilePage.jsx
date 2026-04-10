@@ -16,7 +16,6 @@ export default function ProfilePage() {
   const { user, signOut } = useAuth()
   const meta = user?.user_metadata || {}
   const display_name = meta.display_name || user?.email?.split('@')[0] || 'User'
-  const username = `@${display_name.toLowerCase().replace(/\s/g, '')}`
 
   const [tasteProfile, setTasteProfile] = useState(null)
   const [boards, setBoards] = useState([])
@@ -26,6 +25,9 @@ export default function ProfilePage() {
   const navigate = useNavigate()
 
   // Editable fields
+  const [editName, setEditName] = useState(display_name)
+  const [editBio, setEditBio] = useState(meta.bio || '')
+  const [editAvatar, setEditAvatar] = useState(meta.avatar_url || '')
   const [editAge, setEditAge] = useState(meta.age || '')
   const [editGender, setEditGender] = useState(meta.gender || '')
   const [editFit, setEditFit] = useState(meta.fit_preference || '')
@@ -52,7 +54,10 @@ export default function ProfilePage() {
     try {
       await supabase.auth.updateUser({
         data: {
-          age: parseInt(editAge),
+          display_name: editName,
+          bio: editBio,
+          avatar_url: editAvatar,
+          age: parseInt(editAge) || null,
           gender: editGender,
           fit_preference: editFit,
         }
@@ -66,7 +71,6 @@ export default function ProfilePage() {
   }
 
   const topAesthetics = tasteProfile?.top_aesthetics || []
-  const preferredBrands = meta.preferred_brands?.join(', ') || tasteProfile?.preferred_brands?.join(', ') || 'Not yet set'
   const interactionCount = tasteProfile?.interaction_count || 0
   
   // Real social stats from the backend
@@ -82,9 +86,13 @@ export default function ProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Avatar name={display_name} size="lg" />
+        <Avatar src={meta.avatar_url} name={display_name} size="lg" />
         <h1 className="profile-page__name">{display_name}</h1>
-        <p className="profile-page__username">{username}</p>
+        {meta.bio && (
+          <p className="profile-page__bio" style={{ fontSize: 'var(--text-md)', margin: '4px 0 12px 0', maxWidth: '400px' }}>
+            {meta.bio}
+          </p>
+        )}
         <p className="profile-page__email" style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-tertiary)' }}>
           {user?.email}
         </p>
@@ -194,6 +202,19 @@ export default function ProfilePage() {
           {editing ? (
             <>
               <div className="profile-page__setting-item">
+                <span>Display Name</span>
+                <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="auth-form__input" style={{ width: '100%', padding: '6px 10px', fontSize: '13px' }} />
+              </div>
+              <div className="profile-page__setting-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                <span>Bio</span>
+                <textarea value={editBio} onChange={e => setEditBio(e.target.value)} className="auth-form__input" style={{ width: '100%', padding: '6px 10px', fontSize: '13px', minHeight: '60px', resize: 'vertical' }} />
+              </div>
+              <div className="profile-page__setting-item">
+                <span>Avatar URL</span>
+                <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} className="auth-form__input" placeholder="https://..." style={{ width: '100%', padding: '6px 10px', fontSize: '13px' }} />
+              </div>
+              
+              <div className="profile-page__setting-item" style={{ marginTop: '12px' }}>
                 <span>Age</span>
                 <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)} className="auth-form__input" style={{ width: '80px', padding: '6px 10px', fontSize: '13px' }} />
               </div>
@@ -231,10 +252,6 @@ export default function ProfilePage() {
               <div className="profile-page__setting-item">
                 <span>Fit Preference</span>
                 <span className="profile-page__setting-value">{meta.fit_preference || 'Not specified'}</span>
-              </div>
-              <div className="profile-page__setting-item">
-                <span>Preferred Brands</span>
-                <span className="profile-page__setting-value">{preferredBrands}</span>
               </div>
               <div className="profile-page__setting-item">
                 <span>Style Preferences</span>

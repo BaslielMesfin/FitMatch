@@ -43,8 +43,6 @@ class BoardsService:
         if user_id == "anonymous":
             return []
             
-        await self._ensure_default_board(user_id)
-        
         # 1. Fetch boards
         boards_res = self.supabase.table("boards") \
             .select("*") \
