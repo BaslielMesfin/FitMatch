@@ -51,13 +51,14 @@ async def get_discovery_feed(
     if aesthetic:
         query = f"{aesthetic} fashion clothing"
     elif user_id:
-        # Personalized rotation: Pick one of their top 2 aesthetics
+        # Personalized rotation: Mix their top aesthetics with fresh generic styles
         top_aesthetics = await taste_service.get_top_aesthetics(user_id, top_n=2)
-        if top_aesthetics:
-            # Use page number to rotate between top aesthetics if multiple exist
-            idx = (page - 1) % len(top_aesthetics)
+        if top_aesthetics and page % 2 != 0:
+            # Odd pages: show their personal style
+            idx = (page // 2) % len(top_aesthetics)
             query = f"{top_aesthetics[idx][0]} fashion clothing"
         else:
+            # Even pages (or no taste profile yet): show diverse fresh styles
             idx = (page - 1) % len(ROTATION_QUERIES)
             query = ROTATION_QUERIES[idx]
     else:
