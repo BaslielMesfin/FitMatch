@@ -89,7 +89,7 @@ class SerperSearchProvider(BaseSearchProvider):
                 response.raise_for_status()
                 data = response.json()
 
-            return self._parse_results(data, brand)
+            return self._parse_results(data, brand, query)
 
         except httpx.TimeoutException:
             logger.warning(f"Serper search timed out for: {query}")
@@ -101,10 +101,14 @@ class SerperSearchProvider(BaseSearchProvider):
             logger.error(f"Serper search error: {e}")
             return []
 
-    def _parse_results(self, data: dict, brand: str) -> list[ItemResponse]:
+    def _parse_results(self, data: dict, brand: str, query: str = "") -> list[ItemResponse]:
         """Parse Serper shopping results into ItemResponse objects."""
         items = []
         shopping_results = data.get("shopping", [])
+
+        # Infer aesthetic context from the search query
+        categories = ["Old Money", "Streetwear", "Minimalist", "Y2K", "Dark Academia", "Coastal Grandmother", "Quiet Luxury", "Gorpcore", "Coquette", "Bohemian", "Preppy", "Grunge", "Athleisure", "Cottagecore"]
+        detected_tags = [cat for cat in categories if cat.lower() in query.lower()]
 
         for i, result in enumerate(shopping_results):
             try:
@@ -132,7 +136,7 @@ class SerperSearchProvider(BaseSearchProvider):
                     image_url=image_url,
                     product_url=merchant_url,
                     store=result.get("source", item_brand),
-                    aesthetic_tags=[],
+                    aesthetic_tags=detected_tags,
                     color=None,
                     category=None,
                 )
