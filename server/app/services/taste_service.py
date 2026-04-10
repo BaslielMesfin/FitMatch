@@ -124,7 +124,7 @@ class TasteService:
         aesthetics = profile.get("aesthetics", {})
         
         sorted_aesthetics = sorted(
-            aesthetics.items(),
+            [(k, v) for k, v in aesthetics.items() if float(v) > 0],
             key=lambda x: x[1],
             reverse=True,
         )
