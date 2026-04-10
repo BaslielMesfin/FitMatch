@@ -19,6 +19,7 @@ export default function HomePage() {
   const [activeTag, setActiveTag] = useState(null)
   const [selectedItem, setSelectedItem] = useState(null)
   const [items, setItems] = useState([])
+  const [likedItems, setLikedItems] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [page, setPage] = useState(1)
@@ -102,6 +103,12 @@ export default function HomePage() {
   }, [hasMore, loadingMore, loading, page, activeTag, fetchFeed])
 
   async function handleLike(itemId, liked, itemObj) {
+    setLikedItems(prev => {
+      const next = new Set(prev)
+      if (liked) next.add(itemId)
+      else next.delete(itemId)
+      return next
+    })
     try {
       await discoveryApi.likeItem(itemId, liked, itemObj)
     } catch {
@@ -130,6 +137,7 @@ export default function HomePage() {
         <>
           <DiscoveryFeed
             items={items}
+            likedItems={likedItems}
             onItemClick={setSelectedItem}
             onLike={handleLike}
             onSave={(itemId) => setSelectedItem(items.find(i => i.id === itemId))}
@@ -151,6 +159,8 @@ export default function HomePage() {
       <ItemDetailModal
         item={selectedItem}
         isOpen={!!selectedItem}
+        isLiked={selectedItem ? likedItems.has(selectedItem.id) : false}
+        onLikeToggle={(liked) => handleLike(selectedItem.id, liked, selectedItem)}
         onClose={() => setSelectedItem(null)}
       />
     </div>

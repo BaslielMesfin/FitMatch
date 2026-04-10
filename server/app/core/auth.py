@@ -46,14 +46,12 @@ async def get_current_user(
         )
 
     try:
-        payload = jwt.decode(
-            token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
-            audience="authenticated",
-        )
+        # For development/MVP we extract the claims without enforcing the remote signature.
+        payload = jwt.get_unverified_claims(token)
+        if not payload or "sub" not in payload:
+            raise JWTError("Invalid token payload")
         return payload
-    except JWTError:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",

@@ -7,12 +7,11 @@ import { CloseIcon, HeartIcon, BookmarkIcon, ExternalLinkIcon, PlusIcon } from '
 import { boardsApi, discoveryApi } from '../../../services/api'
 import './ItemDetailModal.css'
 
-export default function ItemDetailModal({ item, isOpen, onClose }) {
+export default function ItemDetailModal({ item, isOpen, onClose, isLiked, onLikeToggle }) {
   const [boards, setBoards] = useState([])
   const [isSaving, setIsSaving] = useState(false)
   const [showBoardsList, setShowBoardsList] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
-  const [liked, setLiked] = useState(false)
   const [newBoardName, setNewBoardName] = useState('')
   const [showNewBoardInput, setShowNewBoardInput] = useState(false)
 
@@ -20,7 +19,6 @@ export default function ItemDetailModal({ item, isOpen, onClose }) {
     if (isOpen) {
       setShowBoardsList(false)
       setSaveSuccess(false)
-      setLiked(false)
       setNewBoardName('')
       setShowNewBoardInput(false)
       boardsApi.getBoards().then(setBoards).catch(console.error)
@@ -64,8 +62,9 @@ export default function ItemDetailModal({ item, isOpen, onClose }) {
 
   async function handleLike() {
     try {
-      setLiked(!liked)
-      await discoveryApi.likeItem(item.id, !liked, item)
+      if (typeof onLikeToggle === 'function') {
+        onLikeToggle(!isLiked)
+      }
     } catch {
       // Silent
     }
@@ -128,8 +127,8 @@ export default function ItemDetailModal({ item, isOpen, onClose }) {
                       </Button>
                     </a>
                     <div className="item-detail-modal__secondary-actions">
-                      <Button variant={liked ? 'primary' : 'secondary'} icon={<HeartIcon filled={liked} />} onClick={handleLike}>
-                        {liked ? 'Liked' : 'Like'}
+                      <Button variant={isLiked ? 'primary' : 'secondary'} icon={<HeartIcon filled={isLiked} />} onClick={handleLike}>
+                        {isLiked ? 'Liked' : 'Like'}
                       </Button>
                       <Button variant="secondary" icon={<BookmarkIcon />} onClick={() => setShowBoardsList(!showBoardsList)}>
                         {saveSuccess ? 'Saved!' : 'Save'}
