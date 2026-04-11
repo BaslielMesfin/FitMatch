@@ -4,10 +4,10 @@ import './DiscoveryFeed.css'
 
 export default function DiscoveryFeed({ items, likedItems = new Set(), onItemClick, onLike, onSave }) {
   const breakpointColumnsObj = {
-    default: 5,
-    1024: 4,
-    768: 3,
-    480: 2
+    default: 4,
+    1024: 3,
+    768: 2,
+    480: 1
   };
 
   return (
