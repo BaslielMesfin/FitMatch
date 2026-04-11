@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import Badge from '../../atoms/Badge/Badge'
 import IconButton from '../../atoms/IconButton/IconButton'
 import { HeartIcon, BookmarkIcon } from '../../icons/Icons'
 import './ItemCard.css'
@@ -65,7 +64,7 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
       <div className="item-card__gradient">
         <span className="item-card__price">${item.price.toFixed(2)}</span>
         {item.aesthetic_tags?.[0] && (
-          <Badge label={item.aesthetic_tags[0]} variant="default" />
+          <span className="item-card__genre">{item.aesthetic_tags[0]}</span>
         )}
       </div>
     </motion.article>

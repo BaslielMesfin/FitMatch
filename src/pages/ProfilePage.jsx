@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Avatar from '../components/atoms/Avatar/Avatar'
@@ -31,6 +31,32 @@ export default function ProfilePage() {
   const [editAge, setEditAge] = useState(meta.age || '')
   const [editGender, setEditGender] = useState(meta.gender || '')
   const [editFit, setEditFit] = useState(meta.fit_preference || '')
+  const fileInputRef = useRef(null)
+
+  function handleAvatarUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const size = 200
+        canvas.width = size
+        canvas.height = size
+        const ctx = canvas.getContext('2d')
+        // Crop to square center
+        const min = Math.min(img.width, img.height)
+        const sx = (img.width - min) / 2
+        const sy = (img.height - min) / 2
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+        setEditAvatar(dataUrl)
+      }
+      img.src = event.target.result
+    }
+    reader.readAsDataURL(file)
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -209,9 +235,28 @@ export default function ProfilePage() {
                 <span>Bio</span>
                 <textarea value={editBio} onChange={e => setEditBio(e.target.value)} className="auth-form__input" style={{ width: '100%', padding: '6px 10px', fontSize: '13px', minHeight: '60px', resize: 'vertical' }} />
               </div>
-              <div className="profile-page__setting-item">
-                <span>Avatar URL</span>
-                <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} className="auth-form__input" placeholder="https://..." style={{ width: '100%', padding: '6px 10px', fontSize: '13px' }} />
+              <div className="profile-page__setting-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                <span>Profile Picture</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {editAvatar && (
+                    <img src={editAvatar} alt="Preview" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="auth-form__input"
+                    style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', background: 'var(--color-bg-subtle)', border: '1px solid var(--color-border-light)', borderRadius: 'var(--radius-md)' }}
+                  >
+                    {editAvatar ? 'Change Photo' : 'Upload Photo'}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    style={{ display: 'none' }}
+                  />
+                </div>
               </div>
               
               <div className="profile-page__setting-item" style={{ marginTop: '12px' }}>

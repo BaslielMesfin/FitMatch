@@ -63,7 +63,7 @@ export default function AppLayout() {
           </nav>
           <div className="top-nav__right">
             <NavLink to="/profile">
-              <Avatar name={displayName} size="sm" />
+              <Avatar src={user?.user_metadata?.avatar_url} name={displayName} size="sm" />
             </NavLink>
           </div>
         </div>
