@@ -10,7 +10,7 @@
 .home-page__loading .masonry-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-3);
+  gap: 8px;
 }
 
 @media (min-width: 480px) {
