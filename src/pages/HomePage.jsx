@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Masonry from 'react-masonry-css'
 import TrendingBar from '../components/organisms/TrendingBar/TrendingBar'
 import DiscoveryFeed from '../components/organisms/DiscoveryFeed/DiscoveryFeed'
 import ItemDetailModal from '../components/organisms/ItemDetailModal/ItemDetailModal'
@@ -27,6 +28,13 @@ export default function HomePage() {
   const observerRef = useRef(null)
   const sentinelRef = useRef(null)
 
+  const breakpointColumnsObj = {
+    default: 5,
+    1024: 4,
+    768: 3,
+    480: 2
+  };
+
   const fetchFeed = useCallback(async (aesthetic, pageNum = 1, append = false) => {
     if (pageNum === 1) setLoading(true)
     else setLoadingMore(true)
@@ -41,7 +49,6 @@ export default function HomePage() {
         }
         setHasMore(response.has_more)
       } else if (!append) {
-        // Fallback to mock
         const filtered = aesthetic
           ? MOCK_ITEMS.filter(item => item.aesthetic_tags?.includes(aesthetic))
           : MOCK_ITEMS
@@ -53,7 +60,6 @@ export default function HomePage() {
     } catch (err) {
       console.warn('API unavailable, using mock data:', err.message)
       if (append) {
-        // Generate more mock items to keep the scroll feeling 'alive'
         const moreMocks = Array.from({ length: 10 }).map((_, i) => ({
           ...MOCK_ITEMS[i % MOCK_ITEMS.length],
           id: `mock-p${pageNum}-${i}`,
@@ -66,24 +72,20 @@ export default function HomePage() {
           : MOCK_ITEMS
         setItems(filtered)
       }
-      // Keep hasMore true so mocks can continue to paginate
     } finally {
       setLoading(false)
       setLoadingMore(false)
     }
   }, [])
 
-  // Initial load & tag change
   useEffect(() => {
     setPage(1)
     setHasMore(true)
     fetchFeed(activeTag, 1, false)
   }, [activeTag, fetchFeed])
 
-  // Infinite scroll via IntersectionObserver
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect()
-
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
@@ -94,11 +96,7 @@ export default function HomePage() {
       },
       { rootMargin: '600px' }
     )
-
-    if (sentinelRef.current) {
-      observerRef.current.observe(sentinelRef.current)
-    }
-
+    if (sentinelRef.current) observerRef.current.observe(sentinelRef.current)
     return () => observerRef.current?.disconnect()
   }, [hasMore, loadingMore, loading, page, activeTag, fetchFeed])
 
@@ -111,9 +109,7 @@ export default function HomePage() {
     })
     try {
       await discoveryApi.likeItem(itemId, liked, itemObj)
-    } catch {
-      // Silent
-    }
+    } catch { }
   }
 
   return (
@@ -122,16 +118,20 @@ export default function HomePage() {
 
       {loading ? (
         <div className="home-page__loading">
-          <div className="masonry-grid" style={{ padding: '0 var(--space-4)' }}>
-            {Array.from({ length: 8 }).map((_, i) => (
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
+            {Array.from({ length: 10 }).map((_, i) => (
               <Skeleton
                 key={i}
                 width="100%"
                 height={`${200 + Math.random() * 150}px`}
-                style={{ borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-4)' }}
+                style={{ borderRadius: 'var(--radius-lg)' }}
               />
             ))}
-          </div>
+          </Masonry>
         </div>
       ) : (
         <>
