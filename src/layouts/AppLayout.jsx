@@ -44,7 +44,6 @@ export default function AppLayout() {
       <header className="top-nav">
         <div className="top-nav__inner">
           <NavLink to="/" className="top-nav__logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <SparkleIcon />
             <span className="top-nav__logo-text gradient-text">FitMatch</span>
           </NavLink>
           <nav className="top-nav__links">
