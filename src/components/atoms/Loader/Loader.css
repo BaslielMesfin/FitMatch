@@ -1,0 +1,17 @@
+.lottie-loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: var(--space-8) 0;
+}
+
+.lottie-loader-container--inline {
+  padding: 0;
+  width: auto;
+}
+
+.lottie-loader-container--full-page {
+  height: 50vh;
+  min-height: 300px;
+}

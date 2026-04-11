@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import SearchBar from '../components/molecules/SearchBar/SearchBar'
-import Skeleton from '../components/atoms/Skeleton/Skeleton'
+import Loader from '../components/atoms/Loader/Loader'
 import DiscoveryFeed from '../components/organisms/DiscoveryFeed/DiscoveryFeed'
 import ItemDetailModal from '../components/organisms/ItemDetailModal/ItemDetailModal'
 import { searchApi, discoveryApi } from '../services/api'
@@ -51,18 +51,7 @@ export default function SearchPage() {
       </div>
 
       {loading ? (
-        <div className="search-page__loading">
-          <div className="masonry-grid" style={{ padding: '0 var(--space-4)', maxWidth: 'var(--max-width)', margin: '0 auto' }}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                width="100%"
-                height={`${200 + Math.random() * 150}px`}
-                style={{ borderRadius: 'var(--radius-lg)' }}
-              />
-            ))}
-          </div>
-        </div>
+        <Loader fullPage />
       ) : searchResults && searchResults.length > 0 ? (
         <DiscoveryFeed
           items={searchResults}

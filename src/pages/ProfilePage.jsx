@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Avatar from '../components/atoms/Avatar/Avatar'
 import Button from '../components/atoms/Button/Button'
 import Badge from '../components/atoms/Badge/Badge'
-import Skeleton from '../components/atoms/Skeleton/Skeleton'
+import Loader from '../components/atoms/Loader/Loader'
 import BoardPreview from '../components/molecules/BoardPreview/BoardPreview'
 import { EditIcon } from '../components/icons/Icons'
 import { discoveryApi, boardsApi } from '../services/api'
@@ -148,11 +148,7 @@ export default function ProfilePage() {
       >
         <h2 className="profile-page__section-title">Style DNA</h2>
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} width="100%" height="32px" />
-            ))}
-          </div>
+          <Loader size={80} />
         ) : topAesthetics.length > 0 ? (
           <div className="profile-page__aesthetics">
             {topAesthetics.map(({ name, score }) => (
@@ -189,11 +185,7 @@ export default function ProfilePage() {
       >
         <h2 className="profile-page__section-title">My Boards</h2>
         {loading ? (
-          <div style={{ display: 'flex', gap: 'var(--space-3)', overflowX: 'auto' }}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} width="160px" height="120px" style={{ borderRadius: 'var(--radius-lg)', flexShrink: 0 }} />
-            ))}
-          </div>
+          <Loader size={80} />
         ) : boards.length > 0 ? (
           <div style={{ display: 'flex', gap: 'var(--space-3)', overflowX: 'auto', paddingBottom: 'var(--space-2)' }}>
             {boards.map(board => (

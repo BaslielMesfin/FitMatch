@@ -3,7 +3,7 @@ import Masonry from 'react-masonry-css'
 import TrendingBar from '../components/organisms/TrendingBar/TrendingBar'
 import DiscoveryFeed from '../components/organisms/DiscoveryFeed/DiscoveryFeed'
 import ItemDetailModal from '../components/organisms/ItemDetailModal/ItemDetailModal'
-import Skeleton from '../components/atoms/Skeleton/Skeleton'
+import Loader from '../components/atoms/Loader/Loader'
 import { MOCK_ITEMS } from '../data/mockData'
 import { discoveryApi } from '../services/api'
 import './HomePage.css'
@@ -117,22 +117,7 @@ export default function HomePage() {
       <TrendingBar activeTag={activeTag} onTagClick={setActiveTag} />
 
       {loading ? (
-        <div className="home-page__loading">
-          <Masonry
-            breakpointCols={breakpointColumnsObj}
-            className="my-masonry-grid"
-            columnClassName="my-masonry-grid_column"
-          >
-            {Array.from({ length: 10 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                width="100%"
-                height={`${200 + Math.random() * 150}px`}
-                style={{ borderRadius: 'var(--radius-lg)' }}
-              />
-            ))}
-          </Masonry>
-        </div>
+        <Loader fullPage />
       ) : (
         <>
           <DiscoveryFeed
@@ -147,11 +132,7 @@ export default function HomePage() {
             <div ref={sentinelRef} style={{ height: '20px', margin: '20px 0' }} />
           )}
           {loadingMore && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-6)' }}>
-              <div className="typing-indicator">
-                <span></span><span></span><span></span>
-              </div>
-            </div>
+            <Loader size={60} />
           )}
         </>
       )}

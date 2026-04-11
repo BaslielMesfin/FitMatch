@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import IconButton from '../../atoms/IconButton/IconButton'
 import ItemCard from '../../molecules/ItemCard/ItemCard'
+import Loader from '../../atoms/Loader/Loader'
 import { SendIcon, ImageIcon, SparkleIcon } from '../../icons/Icons'
 import { chatApi } from '../../../services/api'
 import './StylistChat.css'
@@ -186,10 +187,8 @@ export default function StylistChat() {
             <div className="chat-message__avatar">
               <SparkleIcon />
             </div>
-            <div className="chat-message__bubble chat-message__bubble--assistant">
-              <div className="typing-indicator">
-                <span></span><span></span><span></span>
-              </div>
+            <div className="chat-message__bubble chat-message__bubble--assistant" style={{ padding: '4px 12px' }}>
+              <Loader size={40} inline={true} />
             </div>
           </motion.div>
         )}
