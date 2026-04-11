@@ -14,16 +14,16 @@
 }
 
 @font-face {
-  font-family: 'Rag';
-  src: url('../assets/Rag-main/fonts/woff/Rag-Regular.woff2') format('woff2');
+  font-family: 'LTRemark';
+  src: url('../assets/LTRemark-V2001-2/LTRemark-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Rag';
-  src: url('../assets/Rag-main/fonts/woff/Rag-Bold.woff2') format('woff2');
+  font-family: 'LTRemark';
+  src: url('../assets/LTRemark-V2001-2/LTRemark-Bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
