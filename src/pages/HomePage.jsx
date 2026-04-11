@@ -28,13 +28,6 @@ export default function HomePage() {
   const observerRef = useRef(null)
   const sentinelRef = useRef(null)
 
-  const breakpointColumnsObj = {
-    default: 5,
-    1024: 4,
-    768: 3,
-    480: 2
-  };
-
   const fetchFeed = useCallback(async (aesthetic, pageNum = 1, append = false) => {
     if (pageNum === 1) setLoading(true)
     else setLoadingMore(true)

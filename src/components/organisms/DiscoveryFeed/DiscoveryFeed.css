@@ -7,16 +7,16 @@
 
 .my-masonry-grid {
   display: flex;
-  margin-left: -12px; /* offset for gutter */
+  margin-left: -24px; /* offset for gutter */
   width: auto;
 }
 
 .my-masonry-grid_column {
-  padding-left: 12px; /* column gutter */
+  padding-left: 24px; /* column gutter */
   background-clip: padding-box;
 }
 
 /* Define row gutter */
 .my-masonry-grid_column > * {
-  margin-bottom: 4px !important; 
+  margin-bottom: 24px !important; 
 }
