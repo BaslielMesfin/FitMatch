@@ -74,13 +74,11 @@ export default function SearchPage() {
         <div className="search-page__empty">
           {searchResults === null ? (
             <>
-              <p style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-2)' }}>🔍</p>
               <h3>Search for anything</h3>
               <p>Try "black leather jacket" or "summer dress"</p>
             </>
           ) : (
             <>
-              <p style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-2)' }}>😕</p>
               <h3>No matches found</h3>
               <p>Try a different search term</p>
             </>
