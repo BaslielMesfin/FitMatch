@@ -31,47 +31,42 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
         ease: [0.33, 1, 0.68, 1]
       }}
     >
-      <div className="item-card__image-wrapper">
-        {!imgLoaded && <div className="item-card__skeleton" />}
-        <img
-          className={`item-card__image ${imgLoaded ? 'item-card__image--loaded' : ''}`}
-          src={item.image_url}
-          alt={item.title}
-          loading="lazy"
-          onLoad={() => setImgLoaded(true)}
-        />
-        <div className="item-card__overlay">
-          <div className="item-card__actions">
-            <IconButton
-              icon={<HeartIcon filled={isLiked} />}
-              label={isLiked ? 'Unlike' : 'Like'}
-              variant="glass"
-              active={isLiked}
-              size="sm"
-              onClick={handleLike}
-            />
-            <IconButton
-              icon={<BookmarkIcon filled={false} />}
-              label="Save to board"
-              variant="glass"
-              size="sm"
-              onClick={handleSave}
-            />
-          </div>
+      {!imgLoaded && <div className="item-card__skeleton" />}
+      <img
+        className={`item-card__image ${imgLoaded ? 'item-card__image--loaded' : ''}`}
+        src={item.image_url}
+        alt={item.title}
+        loading="lazy"
+        onLoad={() => setImgLoaded(true)}
+      />
+
+      {/* Hover actions — top right */}
+      <div className="item-card__actions-overlay">
+        <div className="item-card__actions">
+          <IconButton
+            icon={<HeartIcon filled={isLiked} />}
+            label={isLiked ? 'Unlike' : 'Like'}
+            variant="glass"
+            active={isLiked}
+            size="sm"
+            onClick={handleLike}
+          />
+          <IconButton
+            icon={<BookmarkIcon filled={false} />}
+            label="Save to board"
+            variant="glass"
+            size="sm"
+            onClick={handleSave}
+          />
         </div>
       </div>
 
-      <div className="item-card__info">
-        <p className="item-card__brand">{item.brand}</p>
-        <h3 className="item-card__title">{item.title}</h3>
-        <div className="item-card__meta">
-          <span className="item-card__price">
-            ${item.price.toFixed(2)}
-          </span>
-          {item.aesthetic_tags?.[0] && (
-            <Badge label={item.aesthetic_tags[0]} variant="default" />
-          )}
-        </div>
+      {/* Bottom gradient with price + genre */}
+      <div className="item-card__gradient">
+        <span className="item-card__price">${item.price.toFixed(2)}</span>
+        {item.aesthetic_tags?.[0] && (
+          <Badge label={item.aesthetic_tags[0]} variant="default" />
+        )}
       </div>
     </motion.article>
   )
