@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
-import Badge from '../../atoms/Badge/Badge'
 import Skeleton from '../../atoms/Skeleton/Skeleton'
 import { AESTHETIC_TAGS } from '../../../data/mockData'
 import { socialApi } from '../../../services/api'
@@ -33,23 +31,25 @@ export default function TrendingBar({ activeTag, onTagClick }) {
   return (
     <div className="trending-bar">
       <div className="trending-bar__scroll" ref={scrollRef}>
-        <Badge
-          label="For You"
-          variant={!activeTag ? 'active' : 'default'}
+        <button
+          className={`trending-bar__tab ${!activeTag ? 'trending-bar__tab--active' : ''}`}
           onClick={() => onTagClick?.(null)}
-        />
+        >
+          For You
+        </button>
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} width="80px" height="32px" style={{ borderRadius: 'var(--radius-full)' }} />
+            <Skeleton key={i} width="80px" height="24px" style={{ borderRadius: 'var(--radius-md)' }} />
           ))
         ) : (
           tags.map((tag) => (
-            <Badge
+            <button
               key={tag}
-              label={tag}
-              variant={activeTag === tag ? 'active' : 'default'}
+              className={`trending-bar__tab ${activeTag === tag ? 'trending-bar__tab--active' : ''}`}
               onClick={() => onTagClick?.(tag)}
-            />
+            >
+              {tag}
+            </button>
           ))
         )}
       </div>
