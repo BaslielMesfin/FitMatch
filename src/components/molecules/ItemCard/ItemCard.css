@@ -100,9 +100,63 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Mobile: always show actions */
+/* Hover-to-Shop zone — does NOT cover entire card */
+.item-card__shop-zone {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.item-card:hover .item-card__shop-zone {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.item-card__shop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+}
+
+.item-card__shop-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.45);
+}
+
+/* On hover, slightly darken the image behind the shop button */
+.item-card:hover .item-card__image {
+  filter: brightness(0.7);
+  transition: filter var(--duration-normal) var(--ease-out);
+}
+
+/* Mobile: always show actions, hide shop zone */
 @media (max-width: 768px) {
   .item-card__actions-overlay {
     opacity: 1;
   }
+  .item-card__shop-zone {
+    display: none;
+  }
+  .item-card:hover .item-card__image {
+    filter: none;
+  }
 }
+

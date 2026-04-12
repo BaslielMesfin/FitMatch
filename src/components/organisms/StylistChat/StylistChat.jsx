@@ -41,25 +41,68 @@ export default function StylistChat() {
     setIsTyping(true)
     setTimeout(scrollToBottom, 100)
 
-    try {
-      const response = await chatApi.sendMessage(message)
+    // Create a placeholder AI message that we'll update progressively
+    const aiMsgId = (Date.now() + 1).toString()
+    setMessages(prev => [...prev, {
+      id: aiMsgId,
+      role: 'assistant',
+      text: '',
+      suggestedItems: [],
+      aestheticDetected: null,
+      isStreaming: true,
+    }])
+    setTimeout(scrollToBottom, 100)
 
-      const aiMsg = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        text: response.reply,
-        suggestedItems: response.suggested_items || [],
-        aestheticDetected: response.aesthetic_detected,
-      }
-      setMessages(prev => [...prev, aiMsg])
+    try {
+      await chatApi.streamMessage(message, (chunk) => {
+        if (chunk.type === 'text') {
+          setMessages(prev => prev.map(m =>
+            m.id === aiMsgId
+              ? { ...m, text: chunk.content, isStreaming: !chunk.final }
+              : m
+          ))
+          scrollToBottom()
+        } else if (chunk.type === 'meta') {
+          setMessages(prev => prev.map(m =>
+            m.id === aiMsgId
+              ? {
+                  ...m,
+                  suggestedItems: chunk.suggestedItems || [],
+                  aestheticDetected: chunk.aestheticDetected,
+                  isStreaming: false,
+                }
+              : m
+          ))
+          scrollToBottom()
+        }
+      })
     } catch (err) {
-      console.warn('Chat API error:', err.message)
-      const aiMsg = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        text: `Great choice! For a "${message}" look, I'd recommend structured pieces in neutral tones with quality fabrics. Let me connect to the AI to get you personalized recommendations... \n\n*Tip: Make sure the backend server is running at localhost:8000*`,
+      console.warn('Stream failed, falling back:', err.message)
+      // Fallback to non-streaming
+      try {
+        const response = await chatApi.sendMessage(message)
+        setMessages(prev => prev.map(m =>
+          m.id === aiMsgId
+            ? {
+                ...m,
+                text: response.reply,
+                suggestedItems: response.suggested_items || [],
+                aestheticDetected: response.aesthetic_detected,
+                isStreaming: false,
+              }
+            : m
+        ))
+      } catch (fallbackErr) {
+        setMessages(prev => prev.map(m =>
+          m.id === aiMsgId
+            ? {
+                ...m,
+                text: `I'd love to help with "${message}"! Make sure the backend server is running at localhost:8000.`,
+                isStreaming: false,
+              }
+            : m
+        ))
       }
-      setMessages(prev => [...prev, aiMsg])
     } finally {
       setIsTyping(false)
       setTimeout(scrollToBottom, 100)
@@ -134,7 +177,10 @@ export default function StylistChat() {
                 </div>
               )}
               <div className={`chat-message__bubble chat-message__bubble--${msg.role}`}>
-                <p>{msg.text}</p>
+                <p>
+                  {msg.text}
+                  {msg.isStreaming && <span className="chat-cursor">|</span>}
+                </p>
 
                 {/* Show AI-detected aesthetic */}
                 {msg.aestheticDetected && (
@@ -178,7 +224,8 @@ export default function StylistChat() {
           ))}
         </AnimatePresence>
 
-        {isTyping && (
+        {/* Only show the loader when isTyping AND no streaming message is actively rendering */}
+        {isTyping && !messages.some(m => m.isStreaming) && (
           <motion.div
             className="chat-message chat-message--assistant"
             initial={{ opacity: 0, y: 12 }}

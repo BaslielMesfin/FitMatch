@@ -4,7 +4,6 @@ import TrendingBar from '../components/organisms/TrendingBar/TrendingBar'
 import DiscoveryFeed from '../components/organisms/DiscoveryFeed/DiscoveryFeed'
 import ItemDetailModal from '../components/organisms/ItemDetailModal/ItemDetailModal'
 import Loader from '../components/atoms/Loader/Loader'
-import { MOCK_ITEMS } from '../data/mockData'
 import { discoveryApi } from '../services/api'
 import './HomePage.css'
 
@@ -28,9 +27,15 @@ export default function HomePage() {
   const observerRef = useRef(null)
   const sentinelRef = useRef(null)
 
+  const [error, setError] = useState(null)
+
   const fetchFeed = useCallback(async (aesthetic, pageNum = 1, append = false) => {
-    if (pageNum === 1) setLoading(true)
-    else setLoadingMore(true)
+    if (pageNum === 1) {
+      setLoading(true)
+      setError(null)
+    } else {
+      setLoadingMore(true)
+    }
 
     try {
       const response = await discoveryApi.getFeed({ aesthetic, limit: 10, page: pageNum })
@@ -41,30 +46,17 @@ export default function HomePage() {
           setItems(response.items)
         }
         setHasMore(response.has_more)
-      } else if (!append) {
-        const filtered = aesthetic
-          ? MOCK_ITEMS.filter(item => item.aesthetic_tags?.includes(aesthetic))
-          : MOCK_ITEMS
-        setItems(filtered)
-        setHasMore(false)
       } else {
+        if (!append) setItems([])
         setHasMore(false)
       }
     } catch (err) {
-      console.warn('API unavailable, using mock data:', err.message)
-      if (append) {
-        const moreMocks = Array.from({ length: 10 }).map((_, i) => ({
-          ...MOCK_ITEMS[i % MOCK_ITEMS.length],
-          id: `mock-p${pageNum}-${i}`,
-          title: `Sample: ${aesthetic || 'Discovery'} — Item ${items.length + i + 1}`
-        }))
-        setItems(prev => [...prev, ...moreMocks])
-      } else {
-        const filtered = aesthetic
-          ? MOCK_ITEMS.filter(item => item.aesthetic_tags?.includes(aesthetic))
-          : MOCK_ITEMS
-        setItems(filtered)
+      console.error('API Error:', err.message)
+      if (!append) {
+        setError('Lost connection to the styling engine. Please check your network and try again.')
+        setItems([])
       }
+      setHasMore(false)
     } finally {
       setLoading(false)
       setLoadingMore(false)
@@ -111,6 +103,17 @@ export default function HomePage() {
 
       {loading ? (
         <Loader fullPage />
+      ) : error ? (
+        <div className="home-page__error" style={{ textAlign: 'center', padding: '64px', color: 'var(--color-text-tertiary)' }}>
+          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-medium)', marginBottom: '8px' }}>Whoops!</h2>
+          <p>{error}</p>
+          <button 
+            style={{ marginTop: '16px', padding: '8px 16px', borderRadius: 'var(--radius-full)', background: 'var(--color-primary-50)', color: 'var(--color-primary-600)', border: 'none', cursor: 'pointer' }}
+            onClick={() => fetchFeed(activeTag, 1, false)}
+          >
+            Retry Connection
+          </button>
+        </div>
       ) : (
         <>
           <DiscoveryFeed

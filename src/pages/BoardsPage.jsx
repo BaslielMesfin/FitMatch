@@ -132,14 +132,14 @@ export default function BoardsPage() {
             </div>
 
             {loadingItems ? (
-              <div className="masonry-grid" style={{ padding: '0 var(--space-4)' }}>
+              <div className="boards-page__items-grid">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} width="100%" height="220px" style={{ borderRadius: 'var(--radius-lg)' }} />
                 ))}
               </div>
             ) : boardItems.length > 0 ? (
               <>
-                <div className="masonry-grid" style={{ padding: '0 var(--space-4)' }}>
+                <div className="boards-page__items-grid">
                   {boardItems.map((item, index) => (
                     <ItemCard key={item.id} item={item} index={index} onClick={setSelectedItem} />
                   ))}

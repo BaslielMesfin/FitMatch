@@ -19,15 +19,34 @@ ROTATION_QUERIES = [
     "modern minimalist fashion clothing",
     "y2k vintage aesthetic outfits",
     "gorpcore outdoor utility fashion",
-    "coastal grandmother summer linen outfits",
     "dark academia blazers trousers aesthetics",
     "preppy chic polo fashion",
     "avant-garde structural designer clothes",
-    "cyberpunk futuristic techwear",
     "indie sleaze grunge fashion",
-    "balletcore soft girl aesthetic",
-    "eclectic grandpa knitwear fashion",
     "business casual smart trousers blazers"
+]
+
+# Gender-specific rotation queries to avoid cross-gender results
+MENSWEAR_QUERIES = [
+    "mens streetwear hoodies joggers",
+    "mens old money polo chinos",
+    "mens minimalist wardrobe essentials",
+    "mens workwear boots jackets",
+    "mens smart casual blazer trousers",
+    "mens y2k vintage oversized shirts",
+    "mens dark academia sweaters",
+    "mens athleisure sneakers shorts",
+]
+
+WOMENSWEAR_QUERIES = [
+    "womens streetwear cargo pants crop tops",
+    "womens old money quiet luxury outfit",
+    "womens minimalist wardrobe capsule",
+    "womens y2k mini skirts tops",
+    "womens dark academia plaid skirts blazers",
+    "womens coastal grandmother linen outfits",
+    "womens balletcore soft aesthetic",
+    "womens business casual blouse trousers",
 ]
 
 
@@ -47,32 +66,42 @@ async def get_discovery_feed(
     """
     user_id = user.get("sub") if user else None
     
+    # Detect gender early for query selection
+    gender = None
+    if user:
+        metadata = user.get("user_metadata", {})
+        gender = metadata.get("gender")
+
     # 1. Determine the core query
     if aesthetic:
-        query = f"{aesthetic} fashion clothing"
+        gender_term = ""
+        if gender:
+            gender_term = "mens " if gender.lower() == "male" else "womens "
+        query = f"{gender_term}{aesthetic} fashion clothing"
     elif user_id:
         # Personalized rotation: Mix their top aesthetics with fresh generic styles
         top_aesthetics = await taste_service.get_top_aesthetics(user_id, top_n=2)
         if top_aesthetics and page % 2 != 0:
             # Odd pages: show their personal style
             idx = (page // 2) % len(top_aesthetics)
-            query = f"{top_aesthetics[idx][0]} fashion clothing"
+            gender_term = ""
+            if gender:
+                gender_term = "mens " if gender.lower() == "male" else "womens "
+            query = f"{gender_term}{top_aesthetics[idx][0]} fashion clothing"
         else:
-            # Even pages (or no taste profile yet): show diverse fresh styles
-            idx = (page - 1) % len(ROTATION_QUERIES)
-            query = ROTATION_QUERIES[idx]
+            # Even pages (or no taste profile yet): use gender-specific rotation
+            if gender and gender.lower() == "male":
+                idx = (page - 1) % len(MENSWEAR_QUERIES)
+                query = MENSWEAR_QUERIES[idx]
+            elif gender and gender.lower() == "female":
+                idx = (page - 1) % len(WOMENSWEAR_QUERIES)
+                query = WOMENSWEAR_QUERIES[idx]
+            else:
+                idx = (page - 1) % len(ROTATION_QUERIES)
+                query = ROTATION_QUERIES[idx]
     else:
         idx = (page - 1) % len(ROTATION_QUERIES)
         query = ROTATION_QUERIES[idx]
-
-    # 2. Add gender context from metadata if available
-    if user:
-        metadata = user.get("user_metadata", {})
-        gender = metadata.get("gender")
-        if gender:
-            # Male/Female -> adds 'menswear' or 'womenswear' to narrow results
-            gender_term = "menswear" if gender.lower() == "male" else "womenswear"
-            query = f"{query} {gender_term}"
 
     brands = [brand] if brand else None
 

@@ -77,6 +77,59 @@ export const chatApi = {
     })
   },
 
+  /**
+   * Stream AI stylist response. Yields objects:
+   *   { type: 'text', content: '...' }
+   *   { type: 'meta', suggestedItems: [...], aestheticDetected: '...' }
+   */
+  async streamMessage(message, onChunk) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+
+    const res = await fetch(`${API_BASE}/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ message }),
+    })
+
+    if (!res.ok) throw new Error(`Stream error: ${res.status}`)
+
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let fullText = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      const chunk = decoder.decode(value, { stream: true })
+      fullText += chunk
+
+      // Check if we've hit the metadata delimiter
+      if (fullText.includes('__FITMATCH_META__')) {
+        const parts = fullText.split('__FITMATCH_META__')
+        const textPart = parts[0].trim()
+        onChunk({ type: 'text', content: textPart, final: true })
+
+        if (parts[1]) {
+          try {
+            const meta = JSON.parse(parts[1].trim())
+            onChunk({
+              type: 'meta',
+              suggestedItems: meta.suggested_items || [],
+              aestheticDetected: meta.aesthetic_detected,
+            })
+          } catch { /* meta parse failed, skip */ }
+        }
+        break
+      } else {
+        onChunk({ type: 'text', content: fullText.trim(), final: false })
+      }
+    }
+  },
+
   async uploadImage(file, message = 'What goes with this?') {
     const formData = new FormData()
     formData.append('file', file)
