@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
 import SearchBar from '../components/molecules/SearchBar/SearchBar'
 import Loader from '../components/atoms/Loader/Loader'
 import DiscoveryFeed from '../components/organisms/DiscoveryFeed/DiscoveryFeed'
@@ -6,45 +8,34 @@ import ItemDetailModal from '../components/organisms/ItemDetailModal/ItemDetailM
 import { searchApi, discoveryApi } from '../services/api'
 import './SearchPage.css'
 
+const BRAND_FILTERS = ['All', 'Zara', 'ASOS', 'SSENSE', 'H&M', 'Uniqlo', 'Aritzia']
+const AESTHETIC_FILTERS = ['All', 'Streetwear', 'Old Money', 'Minimalist', 'Y2K', 'Dark Academia']
+
 export default function SearchPage() {
   const [query, setQuery] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
-  const [searchResults, setSearchResults] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [activeBrand, setActiveBrand] = useState('All')
+  const [activeAesthetic, setActiveAesthetic] = useState('All')
 
-  const handleSearch = useCallback(async (searchQuery) => {
+  const { data: searchResults, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['search', query, activeBrand, activeAesthetic],
+    queryFn: () => searchApi.search(query, {
+      brands: activeBrand !== 'All' ? [activeBrand] : null,
+      aesthetic: activeAesthetic !== 'All' ? activeAesthetic : null,
+    }),
+    enabled: query.trim().length > 0,
+    select: (data) => data.items || [],
+  })
+
+  function handleSearch(searchQuery) {
     setQuery(searchQuery)
-    setError(null)
-    if (!searchQuery.trim()) {
-      setSearchResults(null)
-      return
-    }
+  }
 
-    setLoading(true)
-    try {
-      const response = await searchApi.search(searchQuery)
-      if (response.items && response.items.length > 0) {
-        setSearchResults(response.items)
-      } else {
-        setSearchResults([])
-      }
-    } catch (err) {
-      console.error('Search API error:', err.message)
-      setError('Unable to reach the search engine. Please check your connection and try again.')
-      setSearchResults([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const handleLike = useCallback(async (itemId, liked) => {
+  async function handleLike(itemId, liked) {
     try {
       await discoveryApi.likeItem(itemId, liked)
-    } catch {
-      // Silent
-    }
-  }, [])
+    } catch { }
+  }
 
   return (
     <div className="search-page">
@@ -53,15 +44,41 @@ export default function SearchPage() {
         <SearchBar onSearch={handleSearch} />
       </div>
 
-      {loading ? (
+      {/* Filter Chips */}
+      <div className="search-page__filters">
+        <div className="search-page__filter-row">
+          {BRAND_FILTERS.map(brand => (
+            <button
+              key={brand}
+              className={`search-page__filter-chip ${activeBrand === brand ? 'search-page__filter-chip--active' : ''}`}
+              onClick={() => setActiveBrand(brand)}
+            >
+              {brand}
+            </button>
+          ))}
+        </div>
+        <div className="search-page__filter-row">
+          {AESTHETIC_FILTERS.map(aes => (
+            <button
+              key={aes}
+              className={`search-page__filter-chip search-page__filter-chip--aesthetic ${activeAesthetic === aes ? 'search-page__filter-chip--active' : ''}`}
+              onClick={() => setActiveAesthetic(aes)}
+            >
+              {aes}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isLoading ? (
         <Loader fullPage />
-      ) : error ? (
+      ) : isError ? (
         <div className="search-page__empty" style={{ color: 'var(--color-text-tertiary)' }}>
           <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-medium)', marginBottom: '8px' }}>Whoops!</h2>
-          <p>{error}</p>
+          <p>{error?.message || 'Unable to reach the search engine.'}</p>
           <button 
             style={{ marginTop: '16px', padding: '8px 16px', borderRadius: 'var(--radius-full)', background: 'var(--color-primary-50)', color: 'var(--color-primary-600)', border: 'none', cursor: 'pointer' }}
-            onClick={() => handleSearch(query)}
+            onClick={() => refetch()}
           >
             Retry Search
           </button>
@@ -75,15 +92,15 @@ export default function SearchPage() {
         />
       ) : (
         <div className="search-page__empty">
-          {searchResults === null ? (
+          {!query.trim() ? (
             <>
               <h3>Search for anything</h3>
-              <p>Try "black leather jacket" or "summer dress"</p>
+              <p>Try "black leather jacket" or "Old Money polo"</p>
             </>
           ) : (
             <>
               <h3>No matches found</h3>
-              <p>Try a different search term</p>
+              <p>Try a different search term or adjust your filters</p>
             </>
           )}
         </div>

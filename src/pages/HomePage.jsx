@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import Masonry from 'react-masonry-css'
+import { useState, useEffect, useRef } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import TrendingBar from '../components/organisms/TrendingBar/TrendingBar'
 import DiscoveryFeed from '../components/organisms/DiscoveryFeed/DiscoveryFeed'
 import ItemDetailModal from '../components/organisms/ItemDetailModal/ItemDetailModal'
@@ -7,83 +7,51 @@ import Loader from '../components/atoms/Loader/Loader'
 import { discoveryApi } from '../services/api'
 import './HomePage.css'
 
-const ROTATION_QUERIES = [
-  'trendy fashion clothing',
-  'designer outfits style',
-  'casual streetwear looks',
-  'luxury fashion accessories',
-  'modern wardrobe essentials',
-]
-
 export default function HomePage() {
   const [activeTag, setActiveTag] = useState(null)
   const [selectedItem, setSelectedItem] = useState(null)
-  const [items, setItems] = useState([])
   const [likedItems, setLikedItems] = useState(new Set())
-  const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  const observerRef = useRef(null)
   const sentinelRef = useRef(null)
 
-  const [error, setError] = useState(null)
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ['feed', activeTag],
+    queryFn: async ({ pageParam = 1 }) => {
+      return discoveryApi.getFeed({ aesthetic: activeTag, limit: 10, page: pageParam })
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.has_more ? allPages.length + 1 : undefined
+    },
+    initialPageParam: 1,
+  })
 
-  const fetchFeed = useCallback(async (aesthetic, pageNum = 1, append = false) => {
-    if (pageNum === 1) {
-      setLoading(true)
-      setError(null)
-    } else {
-      setLoadingMore(true)
-    }
+  // Flatten all pages into a single items array
+  const items = data?.pages.flatMap(page => page.items || []) ?? []
 
-    try {
-      const response = await discoveryApi.getFeed({ aesthetic, limit: 10, page: pageNum })
-      if (response.items && response.items.length > 0) {
-        if (append) {
-          setItems(prev => [...prev, ...response.items])
-        } else {
-          setItems(response.items)
-        }
-        setHasMore(response.has_more)
-      } else {
-        if (!append) setItems([])
-        setHasMore(false)
-      }
-    } catch (err) {
-      console.error('API Error:', err.message)
-      if (!append) {
-        setError('Lost connection to the styling engine. Please check your network and try again.')
-        setItems([])
-      }
-      setHasMore(false)
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }, [])
-
+  // Infinite scroll observer
   useEffect(() => {
-    setPage(1)
-    setHasMore(true)
-    fetchFeed(activeTag, 1, false)
-  }, [activeTag, fetchFeed])
+    if (!hasNextPage || isFetchingNextPage) return
 
-  useEffect(() => {
-    if (observerRef.current) observerRef.current.disconnect()
-    observerRef.current = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          const nextPage = page + 1
-          setPage(nextPage)
-          fetchFeed(activeTag, nextPage, true)
+        if (entries[0].isIntersecting) {
+          fetchNextPage()
         }
       },
       { rootMargin: '600px' }
     )
-    if (sentinelRef.current) observerRef.current.observe(sentinelRef.current)
-    return () => observerRef.current?.disconnect()
-  }, [hasMore, loadingMore, loading, page, activeTag, fetchFeed])
+
+    if (sentinelRef.current) observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   async function handleLike(itemId, liked, itemObj) {
     setLikedItems(prev => {
@@ -101,15 +69,15 @@ export default function HomePage() {
     <div className="home-page">
       <TrendingBar activeTag={activeTag} onTagClick={setActiveTag} />
 
-      {loading ? (
+      {isLoading ? (
         <Loader fullPage />
-      ) : error ? (
+      ) : isError ? (
         <div className="home-page__error" style={{ textAlign: 'center', padding: '64px', color: 'var(--color-text-tertiary)' }}>
           <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-medium)', marginBottom: '8px' }}>Whoops!</h2>
-          <p>{error}</p>
+          <p>{error?.message || 'Lost connection to the styling engine.'}</p>
           <button 
             style={{ marginTop: '16px', padding: '8px 16px', borderRadius: 'var(--radius-full)', background: 'var(--color-primary-50)', color: 'var(--color-primary-600)', border: 'none', cursor: 'pointer' }}
-            onClick={() => fetchFeed(activeTag, 1, false)}
+            onClick={() => refetch()}
           >
             Retry Connection
           </button>
@@ -124,10 +92,10 @@ export default function HomePage() {
             onSave={(itemId) => setSelectedItem(items.find(i => i.id === itemId))}
           />
           {/* Sentinel for infinite scroll */}
-          {hasMore && (
+          {hasNextPage && (
             <div ref={sentinelRef} style={{ height: '20px', margin: '20px 0' }} />
           )}
-          {loadingMore && (
+          {isFetchingNextPage && (
             <Loader size={60} />
           )}
         </>

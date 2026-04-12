@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Avatar from '../components/atoms/Avatar/Avatar'
 import Button from '../components/atoms/Button/Button'
@@ -17,9 +18,6 @@ export default function ProfilePage() {
   const meta = user?.user_metadata || {}
   const display_name = meta.display_name || user?.email?.split('@')[0] || 'User'
 
-  const [tasteProfile, setTasteProfile] = useState(null)
-  const [boards, setBoards] = useState([])
-  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
 
   const navigate = useNavigate()
@@ -33,6 +31,21 @@ export default function ProfilePage() {
   const [editFit, setEditFit] = useState(meta.fit_preference || '')
   const fileInputRef = useRef(null)
   const [avatarUploadBlob, setAvatarUploadBlob] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  // React Query for taste profile
+  const { data: tasteProfile, isLoading: loadingTaste } = useQuery({
+    queryKey: ['tasteProfile'],
+    queryFn: () => discoveryApi.getTasteProfile(),
+  })
+
+  // React Query for boards
+  const { data: boards = [], isLoading: loadingBoards } = useQuery({
+    queryKey: ['boards'],
+    queryFn: () => boardsApi.getBoards(),
+  })
+
+  const loading = loadingTaste || loadingBoards
 
   function handleAvatarUpload(e) {
     const file = e.target.files?.[0]
@@ -46,16 +59,11 @@ export default function ProfilePage() {
         canvas.width = size
         canvas.height = size
         const ctx = canvas.getContext('2d')
-        // Crop to square center
         const min = Math.min(img.width, img.height)
         const sx = (img.width - min) / 2
         const sy = (img.height - min) / 2
         ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size)
-        
-        // Show instant preview
         setEditAvatar(canvas.toDataURL('image/jpeg', 0.8))
-        
-        // Save the raw blob for upload
         canvas.toBlob((blob) => {
           setAvatarUploadBlob(blob)
         }, 'image/jpeg', 0.8)
@@ -65,30 +73,12 @@ export default function ProfilePage() {
     reader.readAsDataURL(file)
   }
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [taste, boardsData] = await Promise.all([
-          discoveryApi.getTasteProfile(),
-          boardsApi.getBoards()
-        ])
-        setTasteProfile(taste)
-        setBoards(boardsData)
-      } catch (err) {
-        console.warn('Failed to load profile data:', err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadData()
-  }, [])
-
   async function handleSaveProfile() {
     try {
       let finalAvatarUrl = editAvatar;
 
       if (avatarUploadBlob) {
-        setLoading(true); // Show loader during image upload
+        setSaving(true);
         const fileName = `${user.id}-${Date.now()}.jpg`
         
         const { data, error } = await supabase.storage
@@ -125,7 +115,7 @@ export default function ProfilePage() {
       window.location.reload()
     } catch (err) {
       console.error('Failed to update profile:', err)
-      setLoading(false)
+      setSaving(false)
       alert("Failed to update profile: " + err.message)
     }
   }

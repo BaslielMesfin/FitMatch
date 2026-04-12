@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import BoardPreview from '../components/molecules/BoardPreview/BoardPreview'
 import ItemCard from '../components/molecules/ItemCard/ItemCard'
@@ -11,40 +12,30 @@ import { boardsApi } from '../services/api'
 import './BoardsPage.css'
 
 export default function BoardsPage() {
-  const [boards, setBoards] = useState([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [selectedBoard, setSelectedBoard] = useState(null)
   const [boardItems, setBoardItems] = useState([])
   const [loadingItems, setLoadingItems] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   
-  // Pagination extensions
+  // Pagination
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const sentinelRef = useRef(null)
 
-  async function fetchBoards() {
-    try {
-      const data = await boardsApi.getBoards()
-      setBoards(data)
-    } catch (err) {
-      console.error('Failed to load boards:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchBoards()
-  }, [])
+  // React Query for boards list
+  const { data: boards = [], isLoading: loading } = useQuery({
+    queryKey: ['boards'],
+    queryFn: () => boardsApi.getBoards(),
+  })
 
   async function handleCreateBoard() {
     const name = window.prompt("Enter board name:")
     if (!name?.trim()) return
     try {
       await boardsApi.createBoard(name)
-      await fetchBoards()
+      queryClient.invalidateQueries({ queryKey: ['boards'] })
     } catch (err) {
       console.error('Failed to create board:', err)
     }
@@ -108,7 +99,7 @@ export default function BoardsPage() {
     setBoardItems([])
     setPage(1)
     setHasMore(false)
-    fetchBoards() // Refresh counts
+    queryClient.invalidateQueries({ queryKey: ['boards'] })
   }
 
   return (
