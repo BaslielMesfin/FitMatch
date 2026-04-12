@@ -17,6 +17,10 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
     onSave?.(item.id)
   }
 
+  function handleShop(e) {
+    e.stopPropagation()
+  }
+
   return (
     <motion.article
       className="item-card"
@@ -59,6 +63,21 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
           />
         </div>
       </div>
+
+      {/* Hover-to-Shop — centered pill */}
+      {item.product_url && (
+        <div className="item-card__shop-zone">
+          <a
+            href={item.product_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="item-card__shop-btn"
+            onClick={handleShop}
+          >
+            Shop
+          </a>
+        </div>
+      )}
 
       {/* Bottom gradient with price + genre */}
       <div className="item-card__gradient">

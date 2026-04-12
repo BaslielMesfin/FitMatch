@@ -169,6 +169,27 @@ class AIService:
                 "the occasion and your preferred aesthetic?"
             )
 
+    async def chat_response_stream(
+        self, message: str, taste_profile: dict | None = None
+    ):
+        """Generate a streaming conversational AI stylist response (async generator)."""
+        try:
+            client = self._get_client()
+            profile_str = json.dumps(taste_profile or {})
+            prompt = CHAT_STYLIST_PROMPT.format(
+                taste_profile=profile_str, message=message
+            )
+            response = client.models.generate_content_stream(
+                model="gemini-2.0-flash",
+                contents=prompt,
+            )
+            for chunk in response:
+                if chunk.text:
+                    yield chunk.text
+        except Exception as e:
+            logger.error(f"Chat stream error: {e}")
+            yield "I'd love to help style you! Could you tell me more about the occasion and your preferred aesthetic?"
+
     @staticmethod
     def _fallback_translation(query: str) -> dict:
         return {

@@ -4,9 +4,11 @@ Handles the AI Stylist multimodal chat interface.
 """
 
 import base64
+import json
 import logging
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 
 from app.core.auth import get_optional_user
 from app.models.schemas import ChatMessageRequest, ChatMessageResponse
@@ -60,6 +62,60 @@ async def send_message(
         suggested_items=suggested_items[:6],
         aesthetic_detected=translation.get("aesthetic"),
     )
+
+
+@router.post("/stream")
+async def stream_message(
+    request: ChatMessageRequest,
+    user: dict | None = Depends(get_optional_user),
+    ai_service: AIService = Depends(get_ai_service),
+    search_service: BaseSearchProvider = Depends(get_search_service),
+    taste_service: TasteService = Depends(get_taste_service),
+):
+    """
+    Stream the AI stylist reply text in real-time, then append product results 
+    as a JSON payload after a delimiter.
+    """
+    user_id = user.get("sub", "anonymous") if user else "anonymous"
+    user_metadata = user.get("user_metadata", {}) if user else {}
+    taste_profile = await taste_service.get_profile(user_id)
+
+    chat_context = {
+        "demographics_and_fit": user_metadata,
+        "style_dna": taste_profile.get("aesthetics", {}),
+    }
+
+    async def event_generator():
+        # Phase 1: Stream the AI text reply chunk by chunk
+        full_reply = ""
+        async for chunk in ai_service.chat_response_stream(
+            message=request.message,
+            taste_profile=chat_context,
+        ):
+            full_reply += chunk
+            yield chunk
+
+        # Phase 2: Search for matching products (non-streamed, appended at end)
+        try:
+            translation = await ai_service.translate_aesthetic(request.message)
+            suggested_items = []
+            for query in translation.get("search_queries", [])[:3]:
+                items = await search_service.search_products(query=query, max_results=4)
+                suggested_items.extend(items)
+
+            # Send a special delimiter followed by JSON metadata
+            payload = {
+                "suggested_items": [item.model_dump() if hasattr(item, 'model_dump') else item.__dict__ for item in suggested_items[:6]],
+                "aesthetic_detected": translation.get("aesthetic"),
+            }
+            yield "\n__FITMATCH_META__\n"
+            yield json.dumps(payload)
+        except Exception as e:
+            logger.error(f"Stream search error: {e}")
+            yield "\n__FITMATCH_META__\n"
+            yield json.dumps({"suggested_items": [], "aesthetic_detected": None})
+
+    return StreamingResponse(event_generator(), media_type="text/plain")
 
 
 @router.post("/upload", response_model=ChatMessageResponse)

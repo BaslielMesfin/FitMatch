@@ -8,5 +8,10 @@ def get_supabase() -> Client:
     global _supabase
     if _supabase is None:
         settings = get_settings()
-        _supabase = create_client(settings.supabase_url, settings.supabase_anon_key)
+        key = settings.supabase_service_role_key or settings.supabase_anon_key
+        if settings.supabase_service_role_key:
+            print("DEBUG: initialized supabase-py with SERVICE ROLE KEY")
+        else:
+            print("DEBUG: initialized supabase-py with ANON KEY")
+        _supabase = create_client(settings.supabase_url, key)
     return _supabase

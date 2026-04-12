@@ -32,6 +32,7 @@ export default function ProfilePage() {
   const [editGender, setEditGender] = useState(meta.gender || '')
   const [editFit, setEditFit] = useState(meta.fit_preference || '')
   const fileInputRef = useRef(null)
+  const [avatarUploadBlob, setAvatarUploadBlob] = useState(null)
 
   function handleAvatarUpload(e) {
     const file = e.target.files?.[0]
@@ -41,7 +42,7 @@ export default function ProfilePage() {
       const img = new Image()
       img.onload = () => {
         const canvas = document.createElement('canvas')
-        const size = 200
+        const size = 300
         canvas.width = size
         canvas.height = size
         const ctx = canvas.getContext('2d')
@@ -50,8 +51,14 @@ export default function ProfilePage() {
         const sx = (img.width - min) / 2
         const sy = (img.height - min) / 2
         ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size)
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-        setEditAvatar(dataUrl)
+        
+        // Show instant preview
+        setEditAvatar(canvas.toDataURL('image/jpeg', 0.8))
+        
+        // Save the raw blob for upload
+        canvas.toBlob((blob) => {
+          setAvatarUploadBlob(blob)
+        }, 'image/jpeg', 0.8)
       }
       img.src = event.target.result
     }
@@ -78,21 +85,48 @@ export default function ProfilePage() {
 
   async function handleSaveProfile() {
     try {
+      let finalAvatarUrl = editAvatar;
+
+      if (avatarUploadBlob) {
+        setLoading(true); // Show loader during image upload
+        const fileName = `${user.id}-${Date.now()}.jpg`
+        
+        const { data, error } = await supabase.storage
+          .from('public-avatars')
+          .upload(fileName, avatarUploadBlob, {
+            contentType: 'image/jpeg',
+            upsert: true
+          })
+
+        if (error) {
+          console.error('Storage Upload Error:', error)
+          throw new Error('Failed to upload avatar to storage.')
+        }
+
+        const { data: publicData } = supabase.storage
+          .from('public-avatars')
+          .getPublicUrl(fileName)
+          
+        finalAvatarUrl = publicData.publicUrl;
+      }
+
       await supabase.auth.updateUser({
         data: {
           display_name: editName,
           bio: editBio,
-          avatar_url: editAvatar,
+          avatar_url: finalAvatarUrl,
           age: parseInt(editAge) || null,
           gender: editGender,
           fit_preference: editFit,
         }
       })
+      
       setEditing(false)
-      // Refresh the page data
       window.location.reload()
     } catch (err) {
       console.error('Failed to update profile:', err)
+      setLoading(false)
+      alert("Failed to update profile: " + err.message)
     }
   }
 

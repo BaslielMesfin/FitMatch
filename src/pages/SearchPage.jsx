@@ -11,9 +11,11 @@ export default function SearchPage() {
   const [selectedItem, setSelectedItem] = useState(null)
   const [searchResults, setSearchResults] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleSearch = useCallback(async (searchQuery) => {
     setQuery(searchQuery)
+    setError(null)
     if (!searchQuery.trim()) {
       setSearchResults(null)
       return
@@ -28,7 +30,8 @@ export default function SearchPage() {
         setSearchResults([])
       }
     } catch (err) {
-      console.warn('Search API unavailable:', err.message)
+      console.error('Search API error:', err.message)
+      setError('Unable to reach the search engine. Please check your connection and try again.')
       setSearchResults([])
     } finally {
       setLoading(false)
@@ -52,6 +55,17 @@ export default function SearchPage() {
 
       {loading ? (
         <Loader fullPage />
+      ) : error ? (
+        <div className="search-page__empty" style={{ color: 'var(--color-text-tertiary)' }}>
+          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-medium)', marginBottom: '8px' }}>Whoops!</h2>
+          <p>{error}</p>
+          <button 
+            style={{ marginTop: '16px', padding: '8px 16px', borderRadius: 'var(--radius-full)', background: 'var(--color-primary-50)', color: 'var(--color-primary-600)', border: 'none', cursor: 'pointer' }}
+            onClick={() => handleSearch(query)}
+          >
+            Retry Search
+          </button>
+        </div>
       ) : searchResults && searchResults.length > 0 ? (
         <DiscoveryFeed
           items={searchResults}
