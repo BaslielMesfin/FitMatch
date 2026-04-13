@@ -46,10 +46,4 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """Cached settings singleton — only reads .env once."""
-    settings = Settings()
-    # Debug print to verify keys are loaded (obscure keys for security)
-    if settings.gemini_api_key:
-        print(f"DEBUG: Gemini API Key loaded: {settings.gemini_api_key[:8]}...")
-    else:
-        print("DEBUG: Gemini API Key NOT loaded!")
-    return settings
+    return Settings()

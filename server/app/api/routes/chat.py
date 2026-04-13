@@ -7,7 +7,7 @@ import base64
 import json
 import logging
 
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 
 from app.core.auth import get_optional_user
@@ -20,10 +20,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chat", tags=["AI Stylist"])
 
+from app.core.rate_limit import limiter
+
 
 @router.post("/message", response_model=ChatMessageResponse)
+@limiter.limit("5/minute")
 async def send_message(
-    request: ChatMessageRequest,
+    request: Request,
+    body: ChatMessageRequest,
     user: dict | None = Depends(get_optional_user),
     ai_service: AIService = Depends(get_ai_service),
     search_service: BaseSearchProvider = Depends(get_search_service),
@@ -44,12 +48,12 @@ async def send_message(
 
     # Step 1: Get AI response
     reply = await ai_service.chat_response(
-        message=request.message,
+        message=body.message,
         taste_profile=chat_context,
     )
 
     # Step 2: Translate the user's request into search queries
-    translation = await ai_service.translate_aesthetic(request.message)
+    translation = await ai_service.translate_aesthetic(body.message)
 
     # Step 3: Search for matching products
     suggested_items = []
@@ -65,8 +69,10 @@ async def send_message(
 
 
 @router.post("/stream")
+@limiter.limit("5/minute")
 async def stream_message(
-    request: ChatMessageRequest,
+    request: Request,
+    body: ChatMessageRequest,
     user: dict | None = Depends(get_optional_user),
     ai_service: AIService = Depends(get_ai_service),
     search_service: BaseSearchProvider = Depends(get_search_service),
@@ -89,7 +95,7 @@ async def stream_message(
         # Phase 1: Stream the AI text reply chunk by chunk
         full_reply = ""
         async for chunk in ai_service.chat_response_stream(
-            message=request.message,
+            message=body.message,
             taste_profile=chat_context,
         ):
             full_reply += chunk
@@ -97,7 +103,7 @@ async def stream_message(
 
         # Phase 2: Search for matching products (non-streamed, appended at end)
         try:
-            translation = await ai_service.translate_aesthetic(request.message)
+            translation = await ai_service.translate_aesthetic(body.message)
             suggested_items = []
             for query in translation.get("search_queries", [])[:3]:
                 items = await search_service.search_products(query=query, max_results=4)
@@ -119,7 +125,9 @@ async def stream_message(
 
 
 @router.post("/upload", response_model=ChatMessageResponse)
+@limiter.limit("5/minute")
 async def upload_image(
+    request: Request,
     file: UploadFile = File(...),
     message: str = Form(default="What goes with this?"),
     user: dict | None = Depends(get_optional_user),

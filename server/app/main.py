@@ -1,14 +1,18 @@
 """
 FitMatch Server — Main Application Entry Point
-FastAPI app initialization with CORS, routers, and health check.
+FastAPI app initialization with CORS, rate limiting, routers, and health check.
 """
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.core.config import get_settings
+from app.core.rate_limit import limiter
 from app.api.routes import discovery, chat, search, boards, social
 
 # Configure logging
@@ -17,6 +21,8 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
 
 # ---- App Factory ----
 
@@ -31,6 +37,10 @@ def create_app() -> FastAPI:
         docs_url="/api/docs" if settings.debug else None,
         redoc_url="/api/redoc" if settings.debug else None,
     )
+
+    # Attach rate limiter
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     # ---- CORS ----
     app.add_middleware(
@@ -67,6 +77,7 @@ def create_app() -> FastAPI:
         logger.info(f"   Gemini API: {'configured' if settings.gemini_api_key else 'not set'}")
         logger.info(f"   Serper API: {'configured' if settings.serper_api_key else 'not set'}")
         logger.info(f"   Target brands: {settings.target_brands}")
+        logger.info(f"   Rate limiting: active (default 60/min, chat 5/min)")
         logger.info("   Docs: http://localhost:8000/api/docs")
 
     return app

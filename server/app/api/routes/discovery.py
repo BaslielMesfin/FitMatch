@@ -3,7 +3,7 @@ FitMatch — Discovery API Routes
 Handles the Pinterest-style discovery feed and item interactions.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.core.auth import get_optional_user
 from app.models.schemas import DiscoveryResponse, ItemResponse, LikeRequest, OnboardRequest
@@ -12,6 +12,8 @@ from app.services.taste_service import TasteService, get_taste_service
 from app.services.social_service import SocialService, get_social_service
 
 router = APIRouter(prefix="/discovery", tags=["Discovery"])
+
+from app.core.rate_limit import limiter
 
 ROTATION_QUERIES = [
     "casual streetwear hoodies pants",
@@ -51,7 +53,9 @@ WOMENSWEAR_QUERIES = [
 
 
 @router.get("/feed", response_model=DiscoveryResponse)
+@limiter.limit("30/minute")
 async def get_discovery_feed(
+    request: Request,
     aesthetic: str | None = Query(None, description="Filter by aesthetic tag"),
     brand: str | None = Query(None, description="Filter by brand"),
     page: int = Query(1, ge=1),

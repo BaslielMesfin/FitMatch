@@ -3,7 +3,7 @@ FitMatch — Search API Routes
 Handles direct product search with brand and aesthetic filters.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.core.auth import get_optional_user
 from app.models.schemas import SearchRequest, DiscoveryResponse
@@ -12,10 +12,14 @@ from app.services.search_service import BaseSearchProvider, get_search_service
 
 router = APIRouter(prefix="/search", tags=["Search"])
 
+from app.core.rate_limit import limiter
+
 
 @router.post("/", response_model=DiscoveryResponse)
+@limiter.limit("20/minute")
 async def search_products(
-    request: SearchRequest,
+    request: Request,
+    body: SearchRequest,
     ai_service: AIService = Depends(get_ai_service),
     search_service: BaseSearchProvider = Depends(get_search_service),
 ):
@@ -25,16 +29,16 @@ async def search_products(
     then searches for matching products.
     """
     # Step 1: Use AI to understand the query
-    translation = await ai_service.translate_aesthetic(request.query)
+    translation = await ai_service.translate_aesthetic(body.query)
 
     # Step 2: Use translated search queries for better results
     all_items = []
-    search_queries = translation.get("search_queries", [request.query])
+    search_queries = translation.get("search_queries", [body.query])
 
     for query in search_queries[:3]:
         items = await search_service.search_products(
             query=query,
-            brands=request.brands,
+            brands=body.brands,
             max_results=8,
         )
         all_items.extend(items)
@@ -59,7 +63,9 @@ async def search_products(
 
 
 @router.get("/quick", response_model=DiscoveryResponse)
+@limiter.limit("20/minute")
 async def quick_search(
+    request: Request,
     q: str = Query(..., min_length=1, description="Search query"),
     brand: str | None = Query(None, description="Filter by brand"),
     search_service: BaseSearchProvider = Depends(get_search_service),

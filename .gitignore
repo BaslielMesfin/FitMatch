@@ -23,8 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables — NEVER commit secrets
+.env
+.env.local
+.env.production
+
 # Backend (Python / FastAPI)
 server/venv/
 server/__pycache__/
-server/.env
 *.pyc
