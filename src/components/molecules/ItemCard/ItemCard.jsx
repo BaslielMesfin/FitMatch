@@ -76,7 +76,7 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
                 target="_blank"
                 rel="noopener noreferrer"
                 className="item-card__shop-btn"
-                color="#c084fc"
+                color="white"
                 speed="3s"
                 onClick={handleShop}
               >
