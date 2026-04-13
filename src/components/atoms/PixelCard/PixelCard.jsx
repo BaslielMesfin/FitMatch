@@ -114,10 +114,10 @@ const VARIANTS = {
     noFocus: false
   },
   pink: {
-    activeColor: '#fecdd3',
-    gap: 6,
-    speed: 80,
-    colors: '#fecdd3,#fda4af,#e11d48',
+    activeColor: '#d946ef',
+    gap: 5,
+    speed: 60,
+    colors: '#d946ef,#c084fc,#a855f7',
     noFocus: true
   }
 };
