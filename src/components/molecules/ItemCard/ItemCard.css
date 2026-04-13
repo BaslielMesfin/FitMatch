@@ -100,18 +100,7 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Wrapper inside PixelCard to hold the actual content */
-.item-card__content-wrapper {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  z-index: 1;
-}
-
-/* Hover-to-Shop zone — does NOT cover entire card */
+/* Removed content wrapper to restore masonry flow */
 .item-card__shop-zone {
   position: absolute;
   top: 50%;

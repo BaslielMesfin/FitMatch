@@ -37,8 +37,7 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
       }}
     >
       <PixelCard variant="pink">
-        <div className="item-card__content-wrapper">
-          {!imgLoaded && <div className="item-card__skeleton" />}
+        {!imgLoaded && <div className="item-card__skeleton" />}
           <img
             className={`item-card__image ${imgLoaded ? 'item-card__image--loaded' : ''}`}
             src={item.image_url}
@@ -93,7 +92,6 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
               <span className="item-card__genre">{item.aesthetic_tags[0]}</span>
             )}
           </div>
-        </div>
       </PixelCard>
     </motion.article>
   )
