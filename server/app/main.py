@@ -59,12 +59,24 @@ def create_app() -> FastAPI:
     app.include_router(social.router, prefix="/api")
 
     # ---- Health Check ----
+    from app.core.supabase import get_supabase
     @app.get("/api/health")
     async def health_check():
+        db_status = "offline"
+        try:
+            # Simple ping to test DB connection
+            supabase = get_supabase()
+            supabase.table("taste_profiles").select("count", count="exact").limit(1).execute()
+            db_status = "connected"
+        except Exception as e:
+            logger.error(f"Health check DB error: {e}")
+            db_status = "error"
+
         return {
-            "status": "healthy",
+            "status": "healthy" if db_status == "connected" else "degraded",
             "app": "FitMatch API",
             "version": "0.1.0",
+            "db_status": db_status,
             "ai_configured": bool(settings.gemini_api_key),
             "search_configured": bool(settings.serper_api_key),
         }
