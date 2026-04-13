@@ -5,7 +5,7 @@
   inset: 0;
   display: block;
   pointer-events: none;
-  z-index: 0;
+  z-index: 2; /* Put above the image (1) but below the UI (3+) */
 }
 
 .pixel-card {
@@ -18,20 +18,4 @@
   isolation: isolate;
   transition: border-color 200ms cubic-bezier(0.5, 1, 0.89, 1);
   user-select: none;
-}
-
-.pixel-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  aspect-ratio: 1;
-  background: radial-gradient(circle, #09090b, transparent 85%);
-  opacity: 0;
-  transition: opacity 800ms cubic-bezier(0.5, 1, 0.89, 1);
-}
-
-.pixel-card:hover::before,
-.pixel-card:focus-within::before {
-  opacity: 1;
 }

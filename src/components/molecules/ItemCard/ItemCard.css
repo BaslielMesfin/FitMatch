@@ -38,6 +38,8 @@
   display: block;
   opacity: 0;
   transition: opacity var(--duration-slow) var(--ease-out);
+  position: relative;
+  z-index: 1; /* Keep underneath the canvas (z=2) if canvas needs to draw over it */
 }
 
 .item-card__image--loaded {
@@ -52,7 +54,7 @@
   padding: var(--space-2);
   opacity: 0;
   transition: opacity var(--duration-normal) var(--ease-out);
-  z-index: 2;
+  z-index: 3; /* Keep buttons above the pixel canvas (z=2) */
 }
 
 .item-card:hover .item-card__actions-overlay {
@@ -82,7 +84,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-2);
-  z-index: 1;
+  z-index: 3; /* Placed over canvas */
   pointer-events: none;
 }
 
