@@ -7,7 +7,7 @@ this module ONLY handles auth verification.
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+
 
 from app.core.config import Settings, get_settings
 
@@ -32,41 +32,36 @@ async def get_current_user(
 
     token = credentials.credentials
 
-    if not settings.supabase_jwt_secret:
+    if settings.debug and not settings.supabase_url:
         # In development mode without Supabase, return a mock user
-        if settings.debug:
-            return {
-                "sub": "mock-user-id",
-                "email": "demo@fitmatch.app",
-                "role": "authenticated",
-            }
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="JWT secret not configured",
-        )
+        return {
+            "sub": "mock-user-id",
+            "email": "demo@fitmatch.app",
+            "role": "authenticated",
+        }
+
+    from app.core.supabase import get_supabase
+    supabase = get_supabase()
 
     try:
-        payload = jwt.decode(
-            token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
-            options={
-                "verify_aud": False,  # Supabase JWTs use "authenticated" role, not standard aud
-            },
-        )
-        if not payload or "sub" not in payload:
-            raise JWTError("Invalid token payload")
-        return payload
-    except JWTError:
+        user_response = supabase.auth.get_user(token)
+        if not user_response or not user_response.user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
+        # Reconstruct the payload to match what the rest of the app expects
+        return {
+            "sub": user_response.user.id,
+            "email": user_response.user.email,
+            "user_metadata": user_response.user.user_metadata,
+        }
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token verification failed",
+            detail=f"Token verification failed: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
