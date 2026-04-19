@@ -101,24 +101,6 @@ class SerperSearchProvider(BaseSearchProvider):
             logger.error(f"Serper search error: {e}")
             return []
 
-    def _extract_merchant_url(self, result: dict) -> str:
-        """
-        Build a Google search URL for the product.
-        Serper Shopping API doesn't provide direct merchant links,
-        so we build a targeted search using the product title + merchant name.
-        The direct product page is usually the first result.
-        """
-        import urllib.parse
-        source = result.get("source", "")
-        title = result.get("title", "")
-        link = result.get("link", "")
-
-        if source and title:
-            search_query = urllib.parse.quote(f"{title} {source}")
-            return f"https://www.google.com/search?q={search_query}"
-
-        return link or "#"
-
     def _parse_results(self, data: dict, brand: str, query: str = "") -> list[ItemResponse]:
         """Parse Serper shopping results into ItemResponse objects."""
         items = []
@@ -140,7 +122,9 @@ class SerperSearchProvider(BaseSearchProvider):
                     image_url = ""
 
                 item_brand = brand if brand else result.get("source", "Unknown")
-                merchant_url = self._extract_merchant_url(result)
+                merchant_url = result.get("link", "")
+                if not merchant_url:
+                    merchant_url = f"https://www.{item_brand.lower().replace(' ', '')}.com" if item_brand != "Unknown" else "#"
                 
                 item = ItemResponse(
                     id=f"serper-{item_brand.lower().replace(' ', '')}-{i}-{hash(result.get('title', '')) % 10000}",
