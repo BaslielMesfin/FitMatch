@@ -4,10 +4,12 @@ import IconButton from '../../atoms/IconButton/IconButton'
 import { HeartIcon, BookmarkIcon } from '../../icons/Icons'
 import StarBorder from '../../atoms/StarBorder/StarBorder'
 import PixelCard from '../../atoms/PixelCard/PixelCard'
+import { searchApi } from '../../../services/api'
 import './ItemCard.css'
 
 export default function ItemCard({ item, isLiked = false, onLike, onSave, onClick, index = 0 }) {
   const [imgLoaded, setImgLoaded] = useState(false)
+  const [resolving, setResolving] = useState(false)
 
   function handleLike(e) {
     e.stopPropagation()
@@ -19,8 +21,22 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
     onSave?.(item.id)
   }
 
-  function handleShop(e) {
+  async function handleShop(e) {
+    e.preventDefault()
     e.stopPropagation()
+    
+    if (resolving) return
+    setResolving(true)
+
+    try {
+      const directUrl = await searchApi.resolveLink(item.title, item.store || item.brand)
+      window.open(directUrl, '_blank', 'noopener,noreferrer')
+    } catch {
+      // Fallback: open the original URL if resolve fails
+      window.open(item.product_url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setResolving(false)
+    }
   }
 
   return (
@@ -71,16 +87,14 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
           {item.product_url && (
             <div className="item-card__shop-zone">
               <StarBorder
-                as="a"
-                href={item.product_url}
-                target="_blank"
-                rel="noopener noreferrer"
+                as="button"
                 className="item-card__shop-btn"
                 color="white"
                 speed="3s"
                 onClick={handleShop}
+                disabled={resolving}
               >
-                Shop
+                {resolving ? 'Finding...' : 'Shop'}
               </StarBorder>
             </div>
           )}

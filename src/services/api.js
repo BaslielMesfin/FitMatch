@@ -9,7 +9,7 @@
 
 import { supabase } from '../lib/supabase'
 
-const API_BASE = 'http://127.0.0.1:8000/api'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api'
 
 async function request(endpoint, options = {}) {
   const { data: { session } } = await supabase.auth.getSession()
@@ -162,6 +162,12 @@ export const searchApi = {
     const params = new URLSearchParams({ q: query })
     if (brand) params.set('brand', brand)
     return request(`/search/quick?${params}`)
+  },
+
+  async resolveLink(title, source) {
+    const params = new URLSearchParams({ title, source })
+    const data = await request(`/search/resolve-link?${params}`)
+    return data.url
   },
 }
 
