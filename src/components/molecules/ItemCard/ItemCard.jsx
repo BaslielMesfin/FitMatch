@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import IconButton from '../../atoms/IconButton/IconButton'
 import { HeartIcon, BookmarkIcon } from '../../icons/Icons'
-
+import StarBorder from '../../atoms/StarBorder/StarBorder'
+import PixelCard from '../../atoms/PixelCard/PixelCard'
 import './ItemCard.css'
 
 export default function ItemCard({ item, isLiked = false, onLike, onSave, onClick, index = 0 }) {
@@ -35,7 +36,8 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
         ease: [0.33, 1, 0.68, 1]
       }}
     >
-      {!imgLoaded && <div className="item-card__skeleton" />}
+      <PixelCard variant="pink">
+        {!imgLoaded && <div className="item-card__skeleton" />}
           <img
             className={`item-card__image ${imgLoaded ? 'item-card__image--loaded' : ''}`}
             src={item.image_url}
@@ -68,15 +70,18 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
           {/* Hover-to-Shop — centered pill */}
           {item.product_url && (
             <div className="item-card__shop-zone">
-              <a
+              <StarBorder
+                as="a"
                 href={item.product_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="item-card__shop-btn"
+                color="white"
+                speed="3s"
                 onClick={handleShop}
               >
                 Shop
-              </a>
+              </StarBorder>
             </div>
           )}
 
@@ -87,6 +92,7 @@ export default function ItemCard({ item, isLiked = false, onLike, onSave, onClic
               <span className="item-card__genre">{item.aesthetic_tags[0]}</span>
             )}
           </div>
+      </PixelCard>
     </motion.article>
   )
 }
