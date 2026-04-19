@@ -103,54 +103,21 @@ class SerperSearchProvider(BaseSearchProvider):
 
     def _extract_merchant_url(self, result: dict) -> str:
         """
-        Build a placeholder URL for feed items.
-        The actual direct link is resolved lazily when the user clicks 'Shop'.
-        For now, store enough info for the resolve endpoint to find the real link.
+        Build a Google search URL for the product.
+        Serper Shopping API doesn't provide direct merchant links,
+        so we build a targeted search using the product title + merchant name.
+        The direct product page is usually the first result.
         """
+        import urllib.parse
         source = result.get("source", "")
         title = result.get("title", "")
         link = result.get("link", "")
 
-        # Use source + title to build a fallback Google search (in case resolve fails)
         if source and title:
-            import urllib.parse
             search_query = urllib.parse.quote(f"{title} {source}")
-            return f"https://www.google.com/search?q={search_query}&udm=28"
+            return f"https://www.google.com/search?q={search_query}"
 
         return link or "#"
-
-    async def resolve_product_link(self, title: str, source: str) -> str:
-        """
-        Use Serper Web Search API to find the direct merchant URL for a product.
-        Called lazily when user clicks 'Shop' — avoids burning credits on feed load.
-        """
-        if not self._settings.serper_api_key:
-            return f"https://www.google.com/search?q={title.replace(' ', '+')}+{source.replace(' ', '+')}"
-
-        try:
-            search_query = f"{title} {source} buy"
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(
-                    "https://google.serper.dev/search",
-                    headers={
-                        "X-API-KEY": self._settings.serper_api_key,
-                        "Content-Type": "application/json",
-                    },
-                    json={"q": search_query, "num": 3},
-                )
-                response.raise_for_status()
-                data = response.json()
-
-            organic = data.get("organic", [])
-            if organic:
-                # Return the first organic result link — usually the direct merchant page
-                return organic[0].get("link", "#")
-
-            return f"https://www.google.com/search?q={search_query.replace(' ', '+')}"
-
-        except Exception as e:
-            logger.error(f"Failed to resolve product link: {e}")
-            return f"https://www.google.com/search?q={title.replace(' ', '+')}+{source.replace(' ', '+')}"
 
     def _parse_results(self, data: dict, brand: str, query: str = "") -> list[ItemResponse]:
         """Parse Serper shopping results into ItemResponse objects."""

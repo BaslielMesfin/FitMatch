@@ -86,25 +86,3 @@ async def quick_search(
         total=len(items),
         has_more=False,
     )
-
-
-@router.get("/resolve-link")
-@limiter.limit("30/minute")
-async def resolve_product_link(
-    request: Request,
-    title: str = Query(..., description="Product title"),
-    source: str = Query(..., description="Merchant/source name"),
-    search_service: BaseSearchProvider = Depends(get_search_service),
-):
-    """
-    Lazily resolve a direct merchant link for a product.
-    Called when the user clicks 'Shop' on a card.
-    Uses Serper Web Search to find the actual merchant product page.
-    """
-    # The search service must be a SerperSearchProvider to have resolve_product_link
-    if hasattr(search_service, "resolve_product_link"):
-        url = await search_service.resolve_product_link(title, source)
-    else:
-        url = f"https://www.google.com/search?q={title.replace(' ', '+')}+{source.replace(' ', '+')}"
-
-    return {"url": url}

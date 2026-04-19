@@ -163,12 +163,6 @@ export const searchApi = {
     if (brand) params.set('brand', brand)
     return request(`/search/quick?${params}`)
   },
-
-  async resolveLink(title, source) {
-    const params = new URLSearchParams({ title, source })
-    const data = await request(`/search/resolve-link?${params}`)
-    return data.url
-  },
 }
 
 // ---- Boards API ----
