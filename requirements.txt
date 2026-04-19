@@ -2,10 +2,9 @@ fastapi
 uvicorn
 pydantic
 pydantic-settings
-supabase
 httpx
 slowapi
 python-dotenv
-google-genai
-google-generativeai
 python-multipart
+google-genai
+supabase
