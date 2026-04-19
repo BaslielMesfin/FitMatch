@@ -101,6 +101,34 @@ class SerperSearchProvider(BaseSearchProvider):
             logger.error(f"Serper search error: {e}")
             return []
 
+    def _extract_merchant_url(self, result: dict) -> str:
+        """
+        Extract the best product URL from a Serper shopping result.
+        
+        Serper Shopping API only returns Google Shopping redirect URLs in 'link'.
+        We build better alternatives:
+        1. Google Shopping product page (has direct merchant links)
+        2. Targeted search on the merchant's own site
+        """
+        source = result.get("source", "")
+        title = result.get("title", "")
+        product_id = result.get("productId", "")
+        link = result.get("link", "")
+
+        # 1. If we have a productId, build a clean Google Shopping product page
+        #    This page shows the product with direct "Visit site" buttons for each merchant
+        if product_id:
+            return f"https://www.google.com/shopping/product/{product_id}"
+
+        # 2. If we know the merchant, do a targeted Google search on their site
+        if source and title:
+            import urllib.parse
+            search_query = urllib.parse.quote(f"{title} site:{source.lower().replace(' ', '')}.com")
+            return f"https://www.google.com/search?q={search_query}"
+
+        # 3. Fall back to the original link (even if it's a Google redirect)
+        return link or "#"
+
     def _parse_results(self, data: dict, brand: str, query: str = "") -> list[ItemResponse]:
         """Parse Serper shopping results into ItemResponse objects."""
         items = []
@@ -117,15 +145,12 @@ class SerperSearchProvider(BaseSearchProvider):
                 # Prefer imageUrl but skip base64 data URIs (they bloat the response)
                 image_url = result.get("imageUrl", "")
                 if image_url.startswith("data:"):
-                    # Try thumbnail or skip
                     image_url = result.get("thumbnailUrl", "")
                 if image_url.startswith("data:"):
                     image_url = ""
 
                 item_brand = brand if brand else result.get("source", "Unknown")
-                merchant_url = result.get("link", "")
-                if not merchant_url:
-                    merchant_url = f"https://www.{item_brand.lower().replace(' ', '')}.com" if item_brand != "Unknown" else "#"
+                merchant_url = self._extract_merchant_url(result)
                 
                 item = ItemResponse(
                     id=f"serper-{item_brand.lower().replace(' ', '')}-{i}-{hash(result.get('title', '')) % 10000}",
